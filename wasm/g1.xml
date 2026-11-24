@@ -1,0 +1,173 @@
+<?xml version='1.0' encoding='utf-8'?>
+<mujoco model="zerotracker_g1">
+  <compiler angle="radian" autolimits="true" />
+  <option timestep="0.02" gravity="0 0 -9.81" />
+  <asset>
+    <mesh name="g1_m0" file="meshes_g1/g1_m0.stl" />
+    <mesh name="g1_m1" file="meshes_g1/g1_m1.stl" />
+    <mesh name="g1_m2" file="meshes_g1/g1_m2.stl" />
+    <mesh name="g1_m3" file="meshes_g1/g1_m3.stl" />
+    <mesh name="g1_m4" file="meshes_g1/g1_m4.stl" />
+    <mesh name="g1_m5" file="meshes_g1/g1_m5.stl" />
+    <mesh name="g1_m6" file="meshes_g1/g1_m6.stl" />
+    <mesh name="g1_m7" file="meshes_g1/g1_m7.stl" />
+    <mesh name="g1_m8" file="meshes_g1/g1_m8.stl" />
+    <mesh name="g1_m9" file="meshes_g1/g1_m9.stl" />
+    <mesh name="g1_m10" file="meshes_g1/g1_m10.stl" />
+    <mesh name="g1_m11" file="meshes_g1/g1_m11.stl" />
+    <mesh name="g1_m12" file="meshes_g1/g1_m12.stl" />
+    <mesh name="g1_m13" file="meshes_g1/g1_m13.stl" />
+    <mesh name="g1_m14" file="meshes_g1/g1_m14.stl" />
+    <mesh name="g1_m15" file="meshes_g1/g1_m15.stl" />
+    <mesh name="g1_m16" file="meshes_g1/g1_m16.stl" />
+    <mesh name="g1_m17" file="meshes_g1/g1_m17.stl" />
+    <mesh name="g1_m18" file="meshes_g1/g1_m18.stl" />
+    <mesh name="g1_m19" file="meshes_g1/g1_m19.stl" />
+    <mesh name="g1_m20" file="meshes_g1/g1_m20.stl" />
+    <mesh name="g1_m21" file="meshes_g1/g1_m21.stl" />
+    <mesh name="g1_m22" file="meshes_g1/g1_m22.stl" />
+    <mesh name="g1_m23" file="meshes_g1/g1_m23.stl" />
+    <mesh name="g1_m24" file="meshes_g1/g1_m24.stl" />
+    <mesh name="g1_m25" file="meshes_g1/g1_m25.stl" />
+    <mesh name="g1_m26" file="meshes_g1/g1_m26.stl" />
+    <mesh name="g1_m27" file="meshes_g1/g1_m27.stl" />
+    <mesh name="g1_m28" file="meshes_g1/g1_m28.stl" />
+    <mesh name="g1_m29" file="meshes_g1/g1_m29.stl" />
+    <mesh name="g1_m30" file="meshes_g1/g1_m30.stl" />
+    <mesh name="g1_m31" file="meshes_g1/g1_m31.stl" />
+    <mesh name="g1_m32" file="meshes_g1/g1_m32.stl" />
+    <mesh name="g1_m33" file="meshes_g1/g1_m33.stl" />
+    <mesh name="g1_m34" file="meshes_g1/g1_m34.stl" />
+  </asset>
+  <worldbody>
+    <body name="pelvis" pos="0.00000 0.00000 0.79300" quat="1.00000 0.00000 0.00000 0.00000">
+      <freejoint name="floating_base_joint" />
+      <geom pos="-0.00000 -0.00000 -0.07638" quat="1.00000 0.00008 -0.00000 0.00000" rgba="0.20000 0.20000 0.20000 1.00000" contype="0" conaffinity="0" type="mesh" mesh="g1_m0" />
+      <geom pos="0.00069 0.00002 -0.07859" quat="0.50612 0.49352 0.49461 0.50561" rgba="0.70000 0.70000 0.70000 1.00000" contype="0" conaffinity="0" type="mesh" mesh="g1_m1" />
+      <body name="left_hip_pitch_link" pos="0.00000 0.06445 -0.10270" quat="1.00000 0.00000 0.00000 0.00000">
+        <joint name="left_hip_pitch_joint" type="hinge" pos="0.00000 0.00000 0.00000" axis="0.00000 1.00000 0.00000" />
+        <geom pos="-0.00087 0.04711 -0.02630" quat="0.94563 0.31549 -0.04501 0.06494" rgba="0.20000 0.20000 0.20000 1.00000" contype="0" conaffinity="0" type="mesh" mesh="g1_m2" />
+        <body name="left_hip_roll_link" pos="0.00000 0.05200 -0.03046" quat="0.99618 0.00000 -0.08734 0.00000">
+          <joint name="left_hip_roll_joint" type="hinge" pos="0.00000 0.00000 0.00000" axis="1.00000 0.00000 0.00000" />
+          <geom pos="0.03567 -0.00036 -0.06771" quat="0.98442 -0.00382 0.17564 -0.00685" rgba="0.70000 0.70000 0.70000 1.00000" contype="0" conaffinity="0" type="mesh" mesh="g1_m3" />
+          <body name="left_hip_yaw_link" pos="0.02500 0.00000 -0.12412" quat="1.00000 0.00000 0.00000 0.00000">
+            <joint name="left_hip_yaw_joint" type="hinge" pos="0.00000 0.00000 0.00000" axis="0.00000 0.00000 1.00000" />
+            <geom pos="-0.03070 -0.00316 -0.09264" quat="0.66793 0.15234 0.17317 0.70759" rgba="0.70000 0.70000 0.70000 1.00000" contype="0" conaffinity="0" type="mesh" mesh="g1_m4" />
+            <body name="left_knee_link" pos="-0.07827 0.00215 -0.17734" quat="0.99618 0.00000 0.08734 0.00000">
+              <joint name="left_knee_joint" type="hinge" pos="0.00000 0.00000 0.00000" axis="0.00000 1.00000 0.00000" />
+              <geom pos="0.01229 0.00273 -0.12275" quat="0.75849 -0.01382 0.02939 0.65088" rgba="0.70000 0.70000 0.70000 1.00000" contype="0" conaffinity="0" type="mesh" mesh="g1_m5" />
+              <body name="left_ankle_pitch_link" pos="0.00000 -0.00009 -0.30001" quat="1.00000 0.00000 0.00000 0.00000">
+                <joint name="left_ankle_pitch_joint" type="hinge" pos="0.00000 0.00000 0.00000" axis="0.00000 1.00000 0.00000" />
+                <geom pos="-0.00411 0.00006 -0.00857" quat="0.67667 0.20522 0.20522 0.67667" rgba="0.70000 0.70000 0.70000 1.00000" contype="0" conaffinity="0" type="mesh" mesh="g1_m6" />
+                <body name="left_ankle_roll_link" pos="0.00000 0.00000 -0.01756" quat="1.00000 0.00000 0.00000 0.00000">
+                  <joint name="left_ankle_roll_joint" type="hinge" pos="0.00000 0.00000 0.00000" axis="1.00000 0.00000 0.00000" />
+                  <geom pos="0.02646 0.00007 -0.01411" quat="-0.00057 0.73529 -0.00073 0.67776" rgba="0.20000 0.20000 0.20000 1.00000" contype="0" conaffinity="0" type="mesh" mesh="g1_m7" />
+                  <body name="left_toe_link" pos="0.10000 0.00000 -0.02000" quat="1.00000 0.00000 0.00000 0.00000" />
+                </body>
+              </body>
+            </body>
+          </body>
+        </body>
+      </body>
+      <body name="right_hip_pitch_link" pos="0.00000 -0.06445 -0.10270" quat="1.00000 0.00000 0.00000 0.00000">
+        <joint name="right_hip_pitch_joint" type="hinge" pos="0.00000 0.00000 0.00000" axis="0.00000 1.00000 0.00000" />
+        <geom pos="-0.00087 -0.04711 -0.02630" quat="0.94562 -0.31551 -0.04502 -0.06497" rgba="0.20000 0.20000 0.20000 1.00000" contype="0" conaffinity="0" type="mesh" mesh="g1_m8" />
+        <body name="right_hip_roll_link" pos="0.00000 -0.05200 -0.03046" quat="0.99618 0.00000 -0.08734 0.00000">
+          <joint name="right_hip_roll_joint" type="hinge" pos="0.00000 0.00000 0.00000" axis="1.00000 0.00000 0.00000" />
+          <geom pos="0.03567 0.00036 -0.06771" quat="0.98442 0.00379 0.17564 0.00666" rgba="0.70000 0.70000 0.70000 1.00000" contype="0" conaffinity="0" type="mesh" mesh="g1_m9" />
+          <body name="right_hip_yaw_link" pos="0.02500 0.00000 -0.12412" quat="1.00000 0.00000 0.00000 0.00000">
+            <joint name="right_hip_yaw_joint" type="hinge" pos="0.00000 0.00000 0.00000" axis="0.00000 0.00000 1.00000" />
+            <geom pos="-0.03070 0.00316 -0.09264" quat="0.70762 0.17315 0.15236 0.66789" rgba="0.70000 0.70000 0.70000 1.00000" contype="0" conaffinity="0" type="mesh" mesh="g1_m10" />
+            <body name="right_knee_link" pos="-0.07827 -0.00215 -0.17734" quat="0.99618 0.00000 0.08734 0.00000">
+              <joint name="right_knee_joint" type="hinge" pos="0.00000 0.00000 0.00000" axis="0.00000 1.00000 0.00000" />
+              <geom pos="0.01229 -0.00273 -0.12275" quat="0.65083 0.02938 -0.01382 0.75853" rgba="0.70000 0.70000 0.70000 1.00000" contype="0" conaffinity="0" type="mesh" mesh="g1_m11" />
+              <body name="right_ankle_pitch_link" pos="0.00000 0.00009 -0.30001" quat="1.00000 0.00000 0.00000 0.00000">
+                <joint name="right_ankle_pitch_joint" type="hinge" pos="0.00000 0.00000 0.00000" axis="0.00000 1.00000 0.00000" />
+                <geom pos="-0.00411 -0.00006 -0.00857" quat="0.67668 0.20519 0.20519 0.67668" rgba="0.70000 0.70000 0.70000 1.00000" contype="0" conaffinity="0" type="mesh" mesh="g1_m12" />
+                <body name="right_ankle_roll_link" pos="0.00000 0.00000 -0.01756" quat="1.00000 0.00000 0.00000 0.00000">
+                  <joint name="right_ankle_roll_joint" type="hinge" pos="0.00000 0.00000 0.00000" axis="1.00000 0.00000 0.00000" />
+                  <geom pos="0.02647 -0.00007 -0.01411" quat="0.00054 0.73529 0.00072 0.67776" rgba="0.20000 0.20000 0.20000 1.00000" contype="0" conaffinity="0" type="mesh" mesh="g1_m13" />
+                  <body name="right_toe_link" pos="0.10000 0.00000 -0.02000" quat="1.00000 0.00000 0.00000 0.00000" />
+                </body>
+              </body>
+            </body>
+          </body>
+        </body>
+      </body>
+      <body name="waist_yaw_link" pos="0.00000 0.00000 0.00000" quat="1.00000 0.00000 0.00000 0.00000">
+        <joint name="waist_yaw_joint" type="hinge" pos="0.00000 0.00000 0.00000" axis="0.00000 0.00000 1.00000" />
+        <geom pos="0.00382 -0.00003 0.01562" quat="0.00053 0.66349 -0.00028 0.74819" rgba="0.70000 0.70000 0.70000 1.00000" contype="0" conaffinity="0" type="mesh" mesh="g1_m14" />
+        <body name="waist_roll_link" pos="-0.00396 0.00000 0.04400" quat="1.00000 0.00000 0.00000 0.00000">
+          <joint name="waist_roll_joint" type="hinge" pos="0.00000 0.00000 0.00000" axis="1.00000 0.00000 0.00000" />
+          <geom pos="0.00000 0.00000 -0.00000" quat="0.50000 0.50000 0.50000 0.50000" rgba="0.70000 0.70000 0.70000 1.00000" contype="0" conaffinity="0" type="mesh" mesh="g1_m15" />
+          <body name="torso_link" pos="0.00000 0.00000 0.00000" quat="1.00000 0.00000 0.00000 0.00000">
+            <joint name="waist_pitch_joint" type="hinge" pos="0.00000 0.00000 0.00000" axis="0.00000 1.00000 0.00000" />
+            <geom pos="0.00486 0.00211 0.14751" quat="0.99999 0.00189 0.00455 0.00210" rgba="0.70000 0.70000 0.70000 1.00000" contype="0" conaffinity="0" type="mesh" mesh="g1_m16" />
+            <geom pos="0.00302 0.00111 0.22746" quat="0.02469 0.70804 -0.02449 0.70531" rgba="0.20000 0.20000 0.20000 1.00000" contype="0" conaffinity="0" type="mesh" mesh="g1_m17" />
+            <geom pos="0.00765 0.00002 0.38513" quat="0.99974 0.00001 0.02279 0.00005" rgba="0.20000 0.20000 0.20000 1.00000" contype="0" conaffinity="0" type="mesh" mesh="g1_m18" />
+            <body name="left_shoulder_pitch_link" pos="0.00396 0.10022 0.24778" quat="0.99026 0.13920 0.00001 -0.00010">
+              <joint name="left_shoulder_pitch_joint" type="hinge" pos="0.00000 0.00000 0.00000" axis="0.00000 1.00000 0.00000" />
+              <geom pos="-0.00003 0.03454 -0.00891" quat="0.69583 0.20867 -0.20283 0.65661" rgba="0.70000 0.70000 0.70000 1.00000" contype="0" conaffinity="0" type="mesh" mesh="g1_m19" />
+              <body name="left_shoulder_roll_link" pos="0.00000 0.03800 -0.01383" quat="0.99027 -0.13917 0.00000 0.00000">
+                <joint name="left_shoulder_roll_joint" type="hinge" pos="0.00000 0.00000 0.00000" axis="1.00000 0.00000 0.00000" />
+                <geom pos="0.00003 0.00775 -0.03751" quat="0.70673 0.02929 -0.02685 0.70637" rgba="0.70000 0.70000 0.70000 1.00000" contype="0" conaffinity="0" type="mesh" mesh="g1_m20" />
+                <body name="left_shoulder_yaw_link" pos="0.00000 0.00624 -0.10320" quat="1.00000 0.00000 0.00000 0.00000">
+                  <joint name="left_shoulder_yaw_joint" type="hinge" pos="0.00000 0.00000 0.00000" axis="0.00000 0.00000 1.00000" />
+                  <geom pos="0.00805 -0.00420 -0.04821" quat="0.65910 -0.12799 -0.04383 0.73979" rgba="0.70000 0.70000 0.70000 1.00000" contype="0" conaffinity="0" type="mesh" mesh="g1_m21" />
+                  <body name="left_elbow_link" pos="0.01578 0.00000 -0.08052" quat="1.00000 0.00000 0.00000 0.00000">
+                    <joint name="left_elbow_joint" type="hinge" pos="0.00000 0.00000 0.00000" axis="0.00000 1.00000 0.00000" />
+                    <geom pos="0.05357 0.00858 -0.00854" quat="0.52961 0.61901 0.41662 0.40345" rgba="0.70000 0.70000 0.70000 1.00000" contype="0" conaffinity="0" type="mesh" mesh="g1_m22" />
+                    <body name="left_wrist_roll_link" pos="0.10000 0.00189 -0.01000" quat="1.00000 0.00000 0.00000 0.00000">
+                      <joint name="left_wrist_roll_joint" type="hinge" pos="0.00000 0.00000 0.00000" axis="1.00000 0.00000 0.00000" />
+                      <geom pos="0.01979 0.00035 0.00000" quat="0.51511 0.48441 -0.51517 0.48436" rgba="0.70000 0.70000 0.70000 1.00000" contype="0" conaffinity="0" type="mesh" mesh="g1_m23" />
+                      <body name="left_wrist_pitch_link" pos="0.03800 0.00000 0.00000" quat="1.00000 0.00000 0.00000 0.00000">
+                        <joint name="left_wrist_pitch_joint" type="hinge" pos="0.00000 0.00000 0.00000" axis="0.00000 1.00000 0.00000" />
+                        <geom pos="0.02549 -0.00054 0.00054" quat="0.48898 0.50117 0.48940 0.51982" rgba="0.70000 0.70000 0.70000 1.00000" contype="0" conaffinity="0" type="mesh" mesh="g1_m24" />
+                        <body name="left_wrist_yaw_link" pos="0.05100 0.00000 0.00000" quat="1.00000 0.00000 0.00000 0.00000">
+                          <joint name="left_wrist_yaw_joint" type="hinge" pos="0.00000 0.00000 0.00000" axis="0.00000 0.00000 1.00000" />
+                          <geom pos="0.01559 -0.00001 -0.00030" quat="0.70702 0.01644 0.01634 0.70681" rgba="0.70000 0.70000 0.70000 1.00000" contype="0" conaffinity="0" type="mesh" mesh="g1_m25" />
+                          <geom pos="0.10613 -0.00368 0.00310" quat="0.54257 0.57985 0.42501 0.43446" rgba="0.20000 0.20000 0.20000 1.00000" contype="0" conaffinity="0" type="mesh" mesh="g1_m26" />
+                          <body name="left_palm_link" pos="0.10000 0.00000 0.00000" quat="1.00000 0.00000 0.00000 0.00000" />
+                        </body>
+                      </body>
+                    </body>
+                  </body>
+                </body>
+              </body>
+            </body>
+            <body name="right_shoulder_pitch_link" pos="0.00396 -0.10021 0.24778" quat="0.99026 -0.13920 0.00001 0.00010">
+              <joint name="right_shoulder_pitch_joint" type="hinge" pos="0.00000 0.00000 0.00000" axis="0.00000 1.00000 0.00000" />
+              <geom pos="-0.00002 -0.03454 -0.00891" quat="0.65645 -0.20270 0.20880 0.69598" rgba="0.70000 0.70000 0.70000 1.00000" contype="0" conaffinity="0" type="mesh" mesh="g1_m27" />
+              <body name="right_shoulder_roll_link" pos="0.00000 -0.03800 -0.01383" quat="0.99027 0.13917 0.00000 0.00000">
+                <joint name="right_shoulder_roll_joint" type="hinge" pos="0.00000 0.00000 0.00000" axis="1.00000 0.00000 0.00000" />
+                <geom pos="0.00003 -0.00775 -0.03751" quat="0.70641 -0.02686 0.02927 0.70669" rgba="0.70000 0.70000 0.70000 1.00000" contype="0" conaffinity="0" type="mesh" mesh="g1_m28" />
+                <body name="right_shoulder_yaw_link" pos="0.00000 -0.00624 -0.10320" quat="1.00000 0.00000 0.00000 0.00000">
+                  <joint name="right_shoulder_yaw_joint" type="hinge" pos="0.00000 0.00000 0.00000" axis="0.00000 0.00000 1.00000" />
+                  <geom pos="0.00805 0.00420 -0.04821" quat="0.73975 -0.04387 -0.12799 0.65914" rgba="0.70000 0.70000 0.70000 1.00000" contype="0" conaffinity="0" type="mesh" mesh="g1_m29" />
+                  <body name="right_elbow_link" pos="0.01578 0.00000 -0.08052" quat="1.00000 0.00000 0.00000 0.00000">
+                    <joint name="right_elbow_joint" type="hinge" pos="0.00000 0.00000 0.00000" axis="0.00000 1.00000 0.00000" />
+                    <geom pos="0.05357 -0.00858 -0.00854" quat="0.40348 0.41660 0.61902 0.52958" rgba="0.70000 0.70000 0.70000 1.00000" contype="0" conaffinity="0" type="mesh" mesh="g1_m30" />
+                    <body name="right_wrist_roll_link" pos="0.10000 -0.00189 -0.01000" quat="1.00000 0.00000 0.00000 0.00000">
+                      <joint name="right_wrist_roll_joint" type="hinge" pos="0.00000 0.00000 0.00000" axis="1.00000 0.00000 0.00000" />
+                      <geom pos="0.01979 -0.00035 -0.00000" quat="0.48436 0.51517 -0.48441 0.51511" rgba="0.70000 0.70000 0.70000 1.00000" contype="0" conaffinity="0" type="mesh" mesh="g1_m31" />
+                      <body name="right_wrist_pitch_link" pos="0.03800 0.00000 0.00000" quat="1.00000 0.00000 0.00000 0.00000">
+                        <joint name="right_wrist_pitch_joint" type="hinge" pos="0.00000 0.00000 0.00000" axis="0.00000 1.00000 0.00000" />
+                        <geom pos="0.02549 0.00054 -0.00054" quat="0.48940 0.51982 0.48898 0.50117" rgba="0.70000 0.70000 0.70000 1.00000" contype="0" conaffinity="0" type="mesh" mesh="g1_m32" />
+                        <body name="right_wrist_yaw_link" pos="0.05100 0.00000 0.00000" quat="1.00000 0.00000 0.00000 0.00000">
+                          <joint name="right_wrist_yaw_joint" type="hinge" pos="0.00000 0.00000 0.00000" axis="0.00000 0.00000 1.00000" />
+                          <geom pos="0.01559 0.00001 0.00030" quat="0.70681 -0.01634 -0.01644 0.70702" rgba="0.70000 0.70000 0.70000 1.00000" contype="0" conaffinity="0" type="mesh" mesh="g1_m33" />
+                          <geom pos="0.10613 0.00368 0.00310" quat="0.43446 0.42502 0.57985 0.54257" rgba="0.20000 0.20000 0.20000 1.00000" contype="0" conaffinity="0" type="mesh" mesh="g1_m34" />
+                          <body name="right_palm_link" pos="0.10000 0.00000 0.00000" quat="1.00000 0.00000 0.00000 0.00000" />
+                        </body>
+                      </body>
+                    </body>
+                  </body>
+                </body>
+              </body>
+            </body>
+          </body>
+        </body>
+      </body>
+    </body>
+  </worldbody>
+</mujoco>

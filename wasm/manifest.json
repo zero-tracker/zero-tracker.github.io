@@ -1,0 +1,125 @@
+{
+  "robots": {
+    "g1": {
+      "label": "Unitree G1 \u00b7 34kg \u00b7 29D",
+      "xml": "g1.xml",
+      "meshes": [
+        "meshes_g1/g1_m0.stl",
+        "meshes_g1/g1_m1.stl",
+        "meshes_g1/g1_m2.stl",
+        "meshes_g1/g1_m3.stl",
+        "meshes_g1/g1_m4.stl",
+        "meshes_g1/g1_m5.stl",
+        "meshes_g1/g1_m6.stl",
+        "meshes_g1/g1_m7.stl",
+        "meshes_g1/g1_m8.stl",
+        "meshes_g1/g1_m9.stl",
+        "meshes_g1/g1_m10.stl",
+        "meshes_g1/g1_m11.stl",
+        "meshes_g1/g1_m12.stl",
+        "meshes_g1/g1_m13.stl",
+        "meshes_g1/g1_m14.stl",
+        "meshes_g1/g1_m15.stl",
+        "meshes_g1/g1_m16.stl",
+        "meshes_g1/g1_m17.stl",
+        "meshes_g1/g1_m18.stl",
+        "meshes_g1/g1_m19.stl",
+        "meshes_g1/g1_m20.stl",
+        "meshes_g1/g1_m21.stl",
+        "meshes_g1/g1_m22.stl",
+        "meshes_g1/g1_m23.stl",
+        "meshes_g1/g1_m24.stl",
+        "meshes_g1/g1_m25.stl",
+        "meshes_g1/g1_m26.stl",
+        "meshes_g1/g1_m27.stl",
+        "meshes_g1/g1_m28.stl",
+        "meshes_g1/g1_m29.stl",
+        "meshes_g1/g1_m30.stl",
+        "meshes_g1/g1_m31.stl",
+        "meshes_g1/g1_m32.stl",
+        "meshes_g1/g1_m33.stl",
+        "meshes_g1/g1_m34.stl"
+      ],
+      "nq": 36,
+      "anchors_9": {
+        "pelvis": 1,
+        "torso": 18,
+        "head": 18,
+        "lhand": 25,
+        "rhand": 33,
+        "lknee": 5,
+        "rknee": 12,
+        "lfoot": 7,
+        "rfoot": 14
+      }
+    },
+    "x2": {
+      "label": "AgiBot X2 \u00b7 41kg \u00b7 29D (#1 Unseen)",
+      "xml": "x2.xml",
+      "meshes": [
+        "meshes_x2/x2_m0.stl",
+        "meshes_x2/x2_m1.stl",
+        "meshes_x2/x2_m2.stl",
+        "meshes_x2/x2_m3.stl",
+        "meshes_x2/x2_m4.stl",
+        "meshes_x2/x2_m5.stl",
+        "meshes_x2/x2_m6.stl",
+        "meshes_x2/x2_m7.stl",
+        "meshes_x2/x2_m8.stl",
+        "meshes_x2/x2_m9.stl",
+        "meshes_x2/x2_m10.stl",
+        "meshes_x2/x2_m11.stl",
+        "meshes_x2/x2_m12.stl",
+        "meshes_x2/x2_m13.stl",
+        "meshes_x2/x2_m14.stl",
+        "meshes_x2/x2_m15.stl",
+        "meshes_x2/x2_m16.stl",
+        "meshes_x2/x2_m17.stl",
+        "meshes_x2/x2_m18.stl",
+        "meshes_x2/x2_m19.stl",
+        "meshes_x2/x2_m20.stl",
+        "meshes_x2/x2_m21.stl",
+        "meshes_x2/x2_m22.stl",
+        "meshes_x2/x2_m23.stl",
+        "meshes_x2/x2_m24.stl",
+        "meshes_x2/x2_m25.stl",
+        "meshes_x2/x2_m26.stl",
+        "meshes_x2/x2_m27.stl",
+        "meshes_x2/x2_m28.stl",
+        "meshes_x2/x2_m29.stl",
+        "meshes_x2/x2_m30.stl",
+        "meshes_x2/x2_m31.stl"
+      ],
+      "nq": 36,
+      "anchors_9": {
+        "pelvis": 1,
+        "torso": 16,
+        "head": 16,
+        "lhand": 21,
+        "rhand": 28,
+        "lknee": 5,
+        "rknee": 11,
+        "lfoot": 7,
+        "rfoot": 13
+      }
+    }
+  },
+  "motions": [
+    {
+      "id": "salsa",
+      "label": "Latino Salsa 180\u00b0"
+    },
+    {
+      "id": "macarena",
+      "label": "Macarena (15s)"
+    },
+    {
+      "id": "routine",
+      "label": "Dance Routine"
+    },
+    {
+      "id": "dance2",
+      "label": "LAFAN1 Dance2"
+    }
+  ]
+}

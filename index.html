@@ -1,0 +1,2200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ZeroTracker — Zero-Shot Cross-Embodiment Whole-Body Control</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #060709;
+      --cell: #0B0D11;
+      --cell-2: #0F1218;
+      --cell-hover: #141821;
+      --ink: #F5F7FA;
+      --ink-sec: #8D96A5;
+      --ink-dim: #505868;
+      --hairline: rgba(255, 255, 255, 0.085);
+      --hairline-mid: rgba(255, 255, 255, 0.14);
+      --hairline-bright: rgba(255, 255, 255, 0.24);
+      --signal: #34D399;
+      --signal-dim: rgba(52, 211, 153, 0.12);
+      --signal-line: rgba(52, 211, 153, 0.42);
+      --warn: #F43F5E;
+      --amber: #F59E0B;
+      --blue: #60A5FA;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+
+    /* Sticky 1px Architectural Topbar */
+    .topbar {
+      position: sticky; top: 0; z-index: 90;
+      height: 50px; background: rgba(6, 7, 9, 0.88); backdrop-filter: blur(18px);
+      border-bottom: 1px solid var(--hairline);
+      display: flex; align-items: stretch; justify-content: space-between;
+    }
+    .tb-brand {
+      display: flex; align-items: center; gap: 10px; padding: 0 24px;
+      border-right: 1px solid var(--hairline); text-decoration: none; color: var(--ink);
+      font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600; letter-spacing: 0.05em;
+    }
+    .tb-dot { width: 7px; height: 7px; background: var(--signal); box-shadow: 0 0 10px var(--signal); }
+    .tb-nav { display: flex; align-items: stretch; }
+    .tb-nav a {
+      display: flex; align-items: center; padding: 0 16px; text-decoration: none;
+      font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--ink-sec);
+      border-left: 1px solid var(--hairline); letter-spacing: 0.04em; transition: all 0.15s;
+    }
+    .tb-nav a:hover { color: var(--ink); background: var(--cell); }
+    .tb-nav a.cta-nav { background: var(--ink); color: var(--bg); font-weight: 600; }
+    .tb-nav a.cta-nav:hover { opacity: 0.9; }
+    @media (max-width: 900px) { .tb-nav a.hide-sm { display: none; } }
+
+    /* Master Architectural Frame */
+    .frame {
+      max-width: 1360px; margin: 0 auto;
+      border-left: 1px solid var(--hairline); border-right: 1px solid var(--hairline);
+    }
+
+    .sec-bar {
+      display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;
+      padding: 11px 36px; border-bottom: 1px solid var(--hairline);
+      font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--ink-dim);
+      letter-spacing: 0.08em; text-transform: uppercase; background: rgba(255,255,255,0.012);
+    }
+    .sec-bar strong { color: var(--signal); font-weight: 600; }
+
+    /* ===================================================================== */
+    /* 01. ASYMMETRIC HERO + 3D INTERACTIVE MARIONETTE LAB                   */
+    /* ===================================================================== */
+    .hero {
+      display: grid; grid-template-columns: 1.02fr 1.18fr; border-bottom: 1px solid var(--hairline);
+      background: radial-gradient(50% 65% at 76% 42%, rgba(52, 211, 153, 0.065), transparent 72%);
+    }
+    @media (max-width: 1040px) { .hero { grid-template-columns: 1fr; } }
+
+    .hero-left {
+      padding: 40px 44px 32px; border-right: 1px solid var(--hairline);
+      display: flex; flex-direction: column; justify-content: space-between; gap: 22px;
+    }
+    .kicker {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--signal);
+      letter-spacing: 0.08em; margin-bottom: 18px;
+    }
+    .kicker::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--signal); box-shadow: 0 0 10px var(--signal); }
+
+    .hero-h1 {
+      font-size: 54px; font-weight: 600; line-height: 1.03; letter-spacing: -0.044em; color: var(--ink);
+    }
+    .hero-h1 span { color: var(--ink-sec); font-weight: 400; }
+    .hero-sub {
+      font-size: 15.5px; color: var(--ink-sec); line-height: 1.7; margin-top: 20px; max-width: 520px;
+    }
+    .authors-block {
+      margin-top: 18px; font-size: 13px; color: var(--ink-dim); font-family: 'JetBrains Mono', monospace;
+    }
+    .authors-block strong { color: var(--ink-sec); font-weight: 500; }
+
+    .btn-row { display: flex; gap: 10px; flex-wrap: wrap; }
+    .btn-primary {
+      background: var(--ink); color: var(--bg); border: 1px solid var(--ink);
+      padding: 10px 20px; font-size: 13px; font-weight: 600; letter-spacing: -0.01em;
+      cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 8px;
+      transition: opacity 0.15s;
+    }
+    .btn-primary:hover { opacity: 0.88; }
+    .btn-ghost {
+      background: rgba(255,255,255,0.03); color: var(--ink); border: 1px solid var(--hairline-bright);
+      padding: 10px 18px; font-size: 13px; font-weight: 500; cursor: pointer;
+      text-decoration: none; display: inline-flex; align-items: center; gap: 7px; transition: background 0.15s;
+    }
+    .btn-ghost:hover { background: rgba(255,255,255,0.08); }
+
+    .eq-foot {
+      margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--hairline);
+      font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--ink-dim);
+      display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px;
+    }
+
+    /* Interactive 3D Shadow-Puppetry Mechanism Lab */
+    .hero-lab { display: flex; flex-direction: column; justify-content: flex-start; background: rgba(8, 10, 14, 0.82); }
+    .lab-bar {
+      display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px;
+      padding: 10px 14px; border-bottom: 1px solid var(--hairline);
+    }
+    .lab-bar.sub { background: rgba(14, 17, 24, 0.72); padding: 8px 14px; }
+    .ctrl-grp { display: flex; gap: 4px; flex-wrap: wrap; align-items: center; }
+    .chip {
+      padding: 4px 9px; font-family: 'JetBrains Mono', monospace; font-size: 10.5px;
+      background: transparent; color: var(--ink-sec); border: 1px solid var(--hairline);
+      cursor: pointer; transition: all 0.15s;
+    }
+    .chip:hover { color: var(--ink); border-color: var(--hairline-bright); }
+    .chip.active { background: var(--ink); color: var(--bg); border-color: var(--ink); font-weight: 600; }
+    .chip.sig-active { background: var(--signal-dim); color: var(--signal); border-color: var(--signal-line); font-weight: 600; }
+    .chip.warn-active { background: var(--warn); color: #FFF; border-color: var(--warn); font-weight: 600; }
+    .push-btn {
+      padding: 4px 10px; font-family: 'JetBrains Mono', monospace; font-size: 10.5px; font-weight: 600;
+      background: var(--signal-dim); color: var(--signal); border: 1px solid var(--signal-line);
+      cursor: pointer; transition: all 0.15s;
+    }
+    .push-btn:hover { background: var(--signal); color: #04130D; }
+    .stage-wrap { position: relative; width: 100%; background: #07090D; user-select: none; }
+    #puppet3d { width: 100%; height: 356px; display: block; cursor: default; touch-action: none; }
+    .stage-hint {
+      position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%);
+      font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--ink-sec);
+      background: rgba(6, 7, 9, 0.78); border: 1px solid var(--hairline-mid);
+      padding: 3px 10px; pointer-events: none; white-space: nowrap;
+    }
+    .mech-dock {
+      display: grid; grid-template-columns: 1.05fr 0.95fr 1fr; border-top: 1px solid var(--hairline);
+      background: var(--cell);
+    }
+    @media (max-width: 720px) { .mech-dock { grid-template-columns: 1fr; } }
+    .mech-cell {
+      padding: 11px 14px; border-right: 1px solid var(--hairline);
+      font-family: 'JetBrains Mono', monospace; font-size: 10.5px;
+    }
+    .mech-cell:last-child { border-right: none; }
+    .mech-title {
+      font-size: 9.5px; letter-spacing: 0.06em; color: var(--ink-dim); margin-bottom: 7px;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .mbar-row { display: flex; align-items: center; gap: 7px; margin-bottom: 5px; }
+    .mbar-bg { flex: 1; height: 5px; background: rgba(255,255,255,0.07); overflow: hidden; }
+    .mbar-fill { height: 100%; transition: width 0.08s linear; }
+
+    /* ===================================================================== */
+    /* 02. KPI TELEMETRY STRIP                                               */
+    /* ===================================================================== */
+    .kpi-4 { display: grid; grid-template-columns: repeat(4, 1fr); border-bottom: 1px solid var(--hairline); }
+    @media (max-width: 860px) { .kpi-4 { grid-template-columns: 1fr 1fr; } }
+    .kpi-cell { padding: 30px 34px; border-right: 1px solid var(--hairline); position: relative; background: var(--cell); }
+    .kpi-cell:last-child { border-right: none; }
+    .kpi-cell::before { content: '+'; position: absolute; top: 9px; right: 13px; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--ink-dim); }
+    .kpi-val { font-size: 44px; font-weight: 600; letter-spacing: -0.045em; line-height: 1; margin: 10px 0 8px; }
+
+    /* ===================================================================== */
+    /* 03. VIDEO CINEMA GALLERY                                              */
+    /* ===================================================================== */
+    .section-pad { padding: 48px 36px 56px; border-bottom: 1px solid var(--hairline); }
+    .sec-head-row { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; flex-wrap: wrap; gap: 16px; }
+    .sec-h2 { font-size: 28px; font-weight: 600; letter-spacing: -0.035em; line-height: 1.15; }
+    .sec-desc { font-size: 14.5px; color: var(--ink-sec); max-width: 680px; margin-top: 6px; }
+
+    .video-deck { border: 1px solid var(--hairline-mid); background: #080A0E; }
+    .video-deck video { width: 100%; aspect-ratio: 16/9; display: block; object-fit: cover; }
+    .v-tabs { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); border-top: 1px solid var(--hairline); }
+    @media (max-width: 980px) { .v-tabs { grid-template-columns: 1fr 1fr; } }
+    .vtab {
+      padding: 15px 18px; background: var(--cell); color: var(--ink-sec); border: none;
+      border-right: 1px solid var(--hairline); text-align: left; cursor: pointer; transition: background 0.15s;
+    }
+    .vtab:last-child { border-right: none; }
+    .vtab:hover { background: var(--cell-hover); color: var(--ink); }
+    .vtab.active { background: #141923; color: var(--ink); box-shadow: inset 0 2px 0 var(--signal); }
+
+    /* ===================================================================== */
+    /* 04. STORY: THREE BARRIERS + LITERATURE POSITIONING                    */
+    /* ===================================================================== */
+    .barriers-3 { display: grid; grid-template-columns: repeat(3, 1fr); border-bottom: 1px solid var(--hairline); }
+    @media (max-width: 900px) { .barriers-3 { grid-template-columns: 1fr; } }
+    .b-cell { padding: 30px 30px; border-right: 1px solid var(--hairline); background: var(--cell); position: relative; display: flex; flex-direction: column; }
+    .b-cell:last-child { border-right: none; }
+    .b-num { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--warn); margin-bottom: 10px; }
+    .b-diagram {
+      margin: 14px 0 16px; background: #07090D; border: 1px solid var(--hairline-mid);
+      padding: 0; display: block; overflow: hidden;
+    }
+    .b-diagram canvas { width: 100%; height: 152px; display: block; }
+    .b-lab-ctrl {
+      display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap;
+      padding: 8px 10px; border-top: 1px solid var(--hairline); background: #0B0E14;
+      font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--ink-sec);
+    }
+    .b-slider {
+      flex: 1; min-width: 80px; accent-color: var(--signal); cursor: pointer; height: 4px;
+    }
+    .b-fix {
+      margin-top: auto; padding-top: 12px; border-top: 1px solid var(--hairline);
+      font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: var(--signal);
+    }
+
+    /* Comparison Table */
+    .data-table { width: 100%; border-collapse: collapse; font-size: 13px; border: 1px solid var(--hairline); }
+    .data-table th {
+      text-align: left; padding: 12px 16px; font-family: 'JetBrains Mono', monospace; font-size: 11px;
+      color: var(--ink-sec); background: var(--cell-2); border-bottom: 1px solid var(--hairline-mid);
+      font-weight: 600; letter-spacing: 0.04em;
+    }
+    .data-table td { padding: 12px 16px; border-bottom: 1px solid var(--hairline); color: var(--ink-sec); }
+    .data-table tr.ours td { background: rgba(52, 211, 153, 0.06); color: var(--ink); font-weight: 600; }
+    .ok-mk { color: var(--signal); font-family: 'JetBrains Mono', monospace; font-weight: 700; }
+    .no-mk { color: var(--ink-dim); font-family: 'JetBrains Mono', monospace; }
+
+    /* ===================================================================== */
+    /* 05. METHOD + NATIVE WHITE ARCHITECTURE SVG + PASSIVITY PROOF          */
+    /* ===================================================================== */
+    .arch-frame {
+      background: #FFFFFF; border: 1px solid var(--hairline-bright); padding: 24px; margin-top: 24px;
+    }
+    .arch-frame img { width: 100%; display: block; height: auto; }
+    .theorem-box {
+      margin-top: 24px; background: var(--cell-2); border: 1px solid var(--hairline-mid);
+      border-left: 2px solid var(--signal); padding: 24px 28px;
+    }
+
+    /* ===================================================================== */
+    /* 06. INTERACTIVE 36-HUMANOID ZERO-SHOT BENCHMARK EXPLORER              */
+    /* ===================================================================== */
+    .metric-guide {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 18px;
+    }
+    @media (max-width: 780px) { .metric-guide { grid-template-columns: 1fr; } }
+    .mg-card {
+      background: var(--cell-2); border: 1px solid var(--hairline); padding: 14px 18px;
+      display: flex; gap: 12px; align-items: flex-start;
+    }
+    .mg-swatch { width: 10px; height: 10px; margin-top: 4px; flex-shrink: 0; }
+    .filter-bar {
+      display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;
+      margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px solid var(--hairline);
+    }
+    .bench-table-wrap { border: 1px solid var(--hairline); background: var(--cell); overflow-x: auto; position: relative; }
+    .bench-expand-bar {
+      width: 100%; padding: 13px 18px; background: linear-gradient(180deg, rgba(14,17,24,0.85), var(--cell-2));
+      border: none; border-top: 1px solid var(--hairline-mid); color: var(--signal);
+      font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 600; letter-spacing: 0.05em;
+      cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px;
+      transition: background 0.15s, color 0.15s;
+    }
+    .bench-expand-bar:hover { background: #141923; color: #FFFFFF; }
+    .bench-head, .r-row {
+      display: grid; grid-template-columns: minmax(190px, 1.3fr) 82px 110px minmax(170px, 1.15fr) minmax(170px, 1.15fr);
+      align-items: center; gap: 14px; padding: 10px 18px; min-width: 760px;
+    }
+    .bench-head {
+      background: var(--cell-2); border-bottom: 1px solid var(--hairline-mid);
+      font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: var(--ink-sec);
+      letter-spacing: 0.05em; font-weight: 600;
+    }
+    .bh-sort { cursor: pointer; user-select: none; transition: color 0.12s; }
+    .bh-sort:hover { color: var(--ink); }
+    .bh-sort.active { color: var(--signal); }
+    .r-row {
+      border-bottom: 1px solid var(--hairline); font-size: 13px; transition: background 0.12s;
+    }
+    .r-row:last-child { border-bottom: none; }
+    .r-row:hover { background: var(--cell-hover); }
+    .bar-cell { display: flex; align-items: center; gap: 10px; }
+    .bar-bg { flex: 1; height: 7px; background: rgba(255,255,255,0.06); overflow: hidden; }
+    .bar-fill { height: 100%; transition: width 0.25s ease; }
+    .bar-num { width: 46px; text-align: right; font-family: 'JetBrains Mono', monospace; font-size: 11.5px; }
+    .tag-zs { font-family: 'JetBrains Mono', monospace; font-size: 9.5px; padding: 1px 6px; background: var(--signal-dim); color: var(--signal); border: 1px solid var(--signal-line); margin-left: 7px; }
+    .tag-tr { font-family: 'JetBrains Mono', monospace; font-size: 9.5px; padding: 1px 6px; background: rgba(255,255,255,0.06); color: var(--ink-sec); border: 1px solid var(--hairline); margin-left: 7px; }
+    .tag-bug { font-family: 'JetBrains Mono', monospace; font-size: 9.5px; padding: 1px 6px; background: rgba(244,63,94,0.12); color: var(--warn); border: 1px solid rgba(244,63,94,0.35); margin-left: 7px; }
+
+    /* ===================================================================== */
+    /* 07. ABLATION SUITE (VISUAL PROGRESSION WATERFALL)                     */
+    /* ===================================================================== */
+    .wf-wrap { border: 1px solid var(--hairline); background: var(--cell); }
+    .wf-head, .wf-row {
+      display: grid; grid-template-columns: minmax(220px, 1.35fr) minmax(190px, 1.2fr) minmax(190px, 1.2fr) 150px;
+      align-items: center; gap: 18px; padding: 16px 22px;
+    }
+    @media (max-width: 900px) {
+      .wf-head { display: none; }
+      .wf-row { grid-template-columns: 1fr; gap: 10px; }
+    }
+    .wf-head {
+      background: var(--cell-2); border-bottom: 1px solid var(--hairline-mid);
+      font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: var(--ink-sec);
+      letter-spacing: 0.05em; font-weight: 600; padding-top: 12px; padding-bottom: 12px;
+    }
+    .wf-row { border-bottom: 1px solid var(--hairline); position: relative; }
+    .wf-row:last-child { border-bottom: none; }
+    .wf-row.full {
+      background: linear-gradient(90deg, rgba(52,211,153,0.09), rgba(52,211,153,0.02));
+      box-shadow: inset 3px 0 0 var(--signal);
+    }
+    .wf-delta {
+      display: inline-block; font-family: 'JetBrains Mono', monospace; font-size: 10.5px;
+      padding: 1px 6px; background: var(--signal-dim); color: var(--signal);
+      border: 1px solid var(--signal-line); margin-left: 6px; font-weight: 600;
+    }
+    .ab-card { background: var(--cell); border: 1px solid var(--hairline); padding: 20px; }
+
+    /* Baseline Comparison Sub-Module (Under 36-Robot Leaderboard) */
+    .base-block { margin-top: 38px; padding-top: 32px; border-top: 1px solid var(--hairline-mid); }
+    .base-grid-2 { display: grid; grid-template-columns: 1.05fr 1.25fr; gap: 18px; align-items: start; }
+    @media (max-width: 980px) { .base-grid-2 { grid-template-columns: 1fr; } }
+    .base-panel { border: 1px solid var(--hairline); background: var(--cell); }
+    .base-panel-head {
+      display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;
+      padding: 12px 16px; background: var(--cell-2); border-bottom: 1px solid var(--hairline-mid);
+    }
+    .base-row {
+      display: grid; grid-template-columns: 138px 1fr 1fr 78px; align-items: center; gap: 12px;
+      padding: 13px 16px; border-bottom: 1px solid var(--hairline); font-size: 12.5px;
+    }
+    .base-row:last-child { border-bottom: none; }
+    .base-row.ours {
+      background: linear-gradient(90deg, rgba(52,211,153,0.09), rgba(52,211,153,0.02));
+      box-shadow: inset 3px 0 0 var(--signal);
+    }
+    .pr-row {
+      display: grid; grid-template-columns: 138px 1fr; align-items: center; gap: 14px;
+      padding: 9px 16px; border-bottom: 1px solid var(--hairline); font-size: 12px;
+    }
+    .pr-row:last-child { border-bottom: none; }
+    .pr-bars { display: flex; flex-direction: column; gap: 3px; }
+    .pr-bar-line { display: flex; align-items: center; gap: 8px; }
+    .pr-track { flex: 1; height: 5px; background: rgba(255,255,255,0.05); overflow: hidden; }
+    .pr-val { width: 38px; text-align: right; font-family: 'JetBrains Mono', monospace; font-size: 10px; }
+    .leg-row { display: flex; gap: 14px; flex-wrap: wrap; padding: 10px 16px; border-bottom: 1px solid var(--hairline); font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--ink-sec); }
+    .leg-dot { display: inline-block; width: 8px; height: 8px; margin-right: 5px; vertical-align: middle; }
+
+    /* BibTeX */
+    .bib-box {
+      background: var(--cell); border: 1px solid var(--hairline-mid); padding: 20px 24px;
+      font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--ink-sec);
+      overflow-x: auto; line-height: 1.7; position: relative;
+    }
+
+    .toast {
+      position: fixed; bottom: 24px; right: 24px; background: var(--ink); color: var(--bg);
+      font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600;
+      padding: 10px 18px; opacity: 0; transition: opacity 0.2s; pointer-events: none; z-index: 99;
+    }
+    .toast.show { opacity: 1; }
+  </style>
+</head>
+<body>
+
+  <!-- Sticky Architectural Navigation -->
+  <header class="topbar">
+    <a class="tb-brand" href="#">
+      <span class="tb-dot"></span>
+      <span>ZEROTRACKER // RESEARCH</span>
+    </a>
+    <nav class="tb-nav">
+      <a href="#videos" class="hide-sm">VIDEOS</a>
+      <a href="#benchmark">33-ROBOT EVAL</a>
+      <a href="#method" class="hide-sm">METHOD</a>
+      <a href="#ablations">ABLATIONS</a>
+      <a href="#bibtex" class="hide-sm">BIBTEX</a>
+      <button class="cta-nav" style="border:none; cursor:pointer;" onclick="showToast('PAPER & CODE COMING SOON')">PAPER / CODE · SOON</button>
+    </nav>
+  </header>
+
+  <div class="frame">
+    <!-- ===================================================================== -->
+    <!-- 01. HERO: ASYMMETRIC SPLIT + 3D MARIONETTE PHYSICS ENGINE             -->
+    <!-- ===================================================================== -->
+    <section class="hero">
+      <div class="hero-left">
+        <div>
+          <div class="kicker">ZERO-SHOT CROSS-EMBODIMENT WHOLE-BODY CONTROL</div>
+          <h1 class="hero-h1">
+            ZeroTracker.<br/>
+            <span>Drive <em style="font-style:normal; color:var(--signal);">unseen</em> robots <em style="font-style:normal; color:var(--signal);">zero-shot</em>,<br/>like a <em style="font-style:normal; color:#FCD34D;">puppeteer</em>.</span>
+          </h1>
+          <p class="hero-sub">
+            Like a master <strong>puppeteer</strong> driving any figure through the same 9 strings, ZeroTracker enables <strong>zero-shot</strong> expressive whole-body control across diverse humanoids via <strong>Dual-Space Jacobian Transformers</strong> and <strong>positive-definite impedance dissipation</strong>—with zero per-robot adapters, zero canonical joint slots, and zero PD gain tuning.
+          </p>
+          <div class="authors-block">
+            <strong>Anonymous Authors</strong> &nbsp;·&nbsp; Trained on 6 robots &nbsp;·&nbsp; Evaluated zero-shot across 33 humanoids
+          </div>
+        </div>
+
+        <div>
+          <div class="btn-row">
+            <button class="btn-primary" onclick="showToast('PAPER COMING SOON')">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 2h7l3 3v9H3V2z"/><path d="M10 2v3h3"/></svg>
+              Paper <span class="mono" style="font-size:10px; opacity:0.65; font-weight:500;">(Coming Soon)</span>
+            </button>
+            <button class="btn-ghost" onclick="showToast('CODE COMING SOON')">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7"><polyline points="5,4 1,8 5,12"/><polyline points="11,4 15,8 11,12"/><line x1="9.5" y1="3" x2="6.5" y2="13"/></svg>
+              Code <span class="mono" style="font-size:10px; color:var(--ink-dim);">(Coming Soon)</span>
+            </button>
+            <a class="btn-ghost" href="#videos">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7"><polygon points="5,3 13,8 5,13"/></svg>
+              50-FPS Showcase
+            </a>
+            <a class="btn-ghost" href="#benchmark">33-Robot Leaderboard</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Live Interactive 3D MuJoCo WASM Viewer (Unitree G1 & AgiBot X2 #1 Unseen + Real 50-FPS Motions) -->
+      <div class="hero-lab">
+        <div class="lab-bar">
+          <div class="ctrl-grp" id="mjRobotBar">
+            <span class="mono" style="font-size:10px; color:var(--ink-dim); margin-right:2px;">ROBOT:</span>
+            <button class="chip active" onclick="mjSelectRobot('g1', this)">Unitree G1 (34kg · ZS)</button>
+            <button class="chip" onclick="mjSelectRobot('x2', this)">AgiBot X2 (41kg · #1 Unseen)</button>
+          </div>
+          <div class="ctrl-grp">
+            <button class="chip sig-active" id="mjStringsBtn" onclick="mjToggleStrings()">9-Strings: ON</button>
+            <button class="chip" onclick="mjResetCam()">Reset Cam</button>
+          </div>
+        </div>
+
+        <div class="lab-bar sub">
+          <div class="ctrl-grp" id="mjMotionBar">
+            <span class="mono" style="font-size:10px; color:var(--ink-dim); margin-right:2px;">MOTION:</span>
+            <button class="chip sig-active" onclick="mjSelectMotion('salsa', this)">Latino Salsa 180°</button>
+            <button class="chip" onclick="mjSelectMotion('macarena', this)">Macarena</button>
+            <button class="chip" onclick="mjSelectMotion('routine', this)">Dance Routine</button>
+            <button class="chip" onclick="mjSelectMotion('dance2', this)">LAFAN1 Dance2</button>
+          </div>
+          <span class="mono" id="mjStatus" style="font-size:10px; color:#F59E0B;">BOOTING MUJOCO WASM...</span>
+        </div>
+
+        <div class="stage-wrap" style="flex:1; min-height:290px;">
+          <div id="mjViewport" style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; color:var(--ink-sec); font-family:'JetBrains Mono',monospace; font-size:11px;">
+            Initializing MuJoCo WASM + 3D Studio...
+          </div>
+          <div class="stage-hint">DRAG TO ORBIT 360° · SCROLL TO ZOOM · REAL MUJOCO WASM (mj_forward) × 50-FPS ZEROTRACKER</div>
+        </div>
+
+        <div class="lab-bar" style="border-top:1px solid var(--hairline); padding:8px 14px; background:var(--cell-2);">
+          <div class="ctrl-grp" style="flex:1; gap:10px;">
+            <button class="chip active" id="mjPlayBtn" style="min-width:74px;">⏸ Pause</button>
+            <input class="b-slider" id="mjScrub" type="range" min="0" max="410" value="0" style="flex:1;" />
+            <span class="mono" id="mjTime" style="font-size:10.5px; color:var(--ink-sec); min-width:76px; text-align:right;">0.0s / 8.2s</span>
+          </div>
+          <div class="mono" style="font-size:10.5px; color:var(--ink-dim); margin-left:12px;">
+            MPJPE: <strong id="mjMpjpe" style="color:var(--signal);">-- mm</strong>
+          </div>
+        </div>
+
+        <!-- Live 3-Network Telemetry driven by REAL MuJoCo WASM qpos velocities -->
+        <div class="mech-dock">
+          <div class="mech-cell">
+            <div class="mech-title">
+              <span>01 // KINNET PROJECTION</span>
+              <span style="color:var(--signal);">FEASIBLE</span>
+            </div>
+            <div style="color:var(--ink-sec); font-size:10px; margin-bottom:6px;">
+              ACTIVE: <strong id="mjKinDrv" style="color:var(--ink);">G1 · SALSA 180°</strong>
+            </div>
+            <div class="mbar-row" style="margin-bottom:0;">
+              <span style="width:36px; color:var(--ink-dim); font-size:9.5px;">CoM</span>
+              <div class="mbar-bg"><div class="mbar-fill" id="mjComBar" style="width:94%; background:#60A5FA;"></div></div>
+              <span style="width:30px; text-align:right; color:#60A5FA; font-size:9.5px;">SAFE</span>
+            </div>
+          </div>
+
+          <div class="mech-cell" style="display:flex; gap:10px; align-items:center;">
+            <div style="flex:1;">
+              <div class="mech-title" style="margin-bottom:4px;">
+                <span>02 // DYNNET GRAM JᵀJ</span>
+              </div>
+              <div style="font-size:9.5px; color:var(--ink-sec); line-height:1.45;">
+                Live <span style="color:var(--signal);">JᵀJ</span> joint-chain coupling:
+                <div id="mjDynPair" style="color:var(--ink); margin-top:3px; font-weight:600;">FULL-BODY JᵀJ</div>
+              </div>
+            </div>
+            <canvas id="mjGramCv" width="88" height="88" style="border:1px solid var(--hairline-mid); background:#07090D; flex-shrink:0;"></canvas>
+          </div>
+
+          <div class="mech-cell">
+            <div class="mech-title">
+              <span>03 // IMPEDANCE PORT</span>
+              <span style="color:var(--signal);">K,D ≻ 0</span>
+            </div>
+            <div class="mbar-row">
+              <span style="width:26px; color:var(--ink-dim); font-size:9.5px;">K_a</span>
+              <div class="mbar-bg"><div class="mbar-fill" id="mjKBar" style="width:55%; background:var(--signal);"></div></div>
+              <span id="mjKVal" style="width:34px; text-align:right; color:var(--ink); font-size:9.5px;">1.00×</span>
+            </div>
+            <div class="mbar-row" style="margin-bottom:5px;">
+              <span style="width:26px; color:var(--ink-dim); font-size:9.5px;">D_a</span>
+              <div class="mbar-bg"><div class="mbar-fill" id="mjDBar" style="width:55%; background:#F59E0B;"></div></div>
+              <span id="mjDVal" style="width:34px; text-align:right; color:var(--ink); font-size:9.5px;">1.00×</span>
+            </div>
+            <canvas id="mjEnergyCv" width="160" height="20" style="width:100%; height:20px; display:block; background:#07090D; border:1px solid var(--hairline);"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- 02. ARCHITECTURAL 4-KPI TELEMETRY STRIP                               -->
+    <!-- ===================================================================== -->
+    <section class="kpi-4">
+      <div class="kpi-cell">
+        <div class="mono" style="font-size:10.5px; color:var(--ink-dim);">01 // CROSS-EMBODIMENT SPAN</div>
+        <div class="kpi-val">33</div>
+        <div style="font-size:12.5px; color:var(--ink-sec);">Open-source humanoids (17.3–90.6 kg, 18–34 DoF)</div>
+      </div>
+      <div class="kpi-cell">
+        <div class="mono" style="font-size:10.5px; color:var(--ink-dim);">02 // ZERO-SHOT UNITREE G1</div>
+        <div class="kpi-val">97.0<span style="font-size:22px; color:var(--ink-sec);">%</span></div>
+        <div style="font-size:12.5px; color:var(--ink-sec);">Balance Stability (200 seeds) · 66.7% LAFAN1 Motion</div>
+      </div>
+      <div class="kpi-cell">
+        <div class="mono" style="font-size:10.5px; color:var(--ink-dim);">03 // IMPULSE DISTURBANCE</div>
+        <div class="kpi-val" style="color:var(--signal);">89.5<span style="font-size:22px;">%</span></div>
+        <div style="font-size:12.5px; color:var(--ink-sec);">1.2 m/s push recovery (+41.7% vs Fixed-PD)</div>
+      </div>
+      <div class="kpi-cell">
+        <div class="mono" style="font-size:10.5px; color:var(--ink-dim);">04 // ZERO-SHOT DEPLOYMENT</div>
+        <div class="kpi-val">0<span style="font-size:20px; color:var(--ink-sec);"> FINETUNING</span></div>
+        <div style="font-size:12.5px; color:var(--ink-sec);">Zero per-robot adapters · Zero offline retargeting · Zero PD tuning</div>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- 03. FLAGSHIP 50-FPS STUDIO VIDEO GALLERY                              -->
+    <!-- ===================================================================== -->
+    <div class="sec-bar" id="videos">
+      <span>01 // ZERO-SHOT CROSS-EMBODIMENT SHOWCASE · SINGLE POLICY</span>
+      <span>ZERO-SHOT · RETARGET-FREE · ZERO PD TUNING</span>
+    </div>
+    <section class="section-pad">
+      <div class="sec-head-row">
+        <div>
+          <h2 class="sec-h2">One Puppeteer Controlling Unseen Humanoids</h2>
+          <p class="sec-desc">A single puppeteer policy drives 16+ unseen humanoids (17 kg – 67 kg, 18 – 31 DoF) through the exact same 9 universal strings directly from raw human motion—with no fine-tuning, no offline motion retargeting, no per-robot adapters, and no manual PD gain tuning.</p>
+        </div>
+        <div class="ctrl-grp">
+          <button class="chip active" id="litSlate" onclick="setLighting('slate')">Slate Dark Studio</button>
+          <button class="chip" id="litGallery" onclick="setLighting('gallery')">Gallery Daylight</button>
+        </div>
+      </div>
+
+      <div class="video-deck">
+        <video id="stageVideo" autoplay loop muted playsinline poster="./viz/dualzero_cinema_showcase/dualzero_slate_family16_dance_latino_salsa_step_180_R_002__A322_cover.png">
+          <source src="./viz/dualzero_cinema_showcase/dualzero_slate_family16_dance_latino_salsa_step_180_R_002__A322.mp4" type="video/mp4" />
+        </video>
+        <div class="v-tabs">
+          <button class="vtab active" onclick="selectVideo(0, this)">
+            <div class="mono" style="font-size:10px; color:var(--signal);">01 · 16-ROBOT SALSA</div>
+            <div style="font-size:12.5px; font-weight:600; margin-top:2px;">16 Humanoids · Latino Salsa 180°</div>
+            <div class="mono" style="font-size:10px; color:var(--ink-dim); margin-top:2px;">17–67 kg · 100% Surv · Non-Stop</div>
+          </button>
+          <button class="vtab" onclick="selectVideo(1, this)">
+            <div class="mono" style="font-size:10px; color:var(--signal);">02 · 16-ROBOT MACARENA</div>
+            <div style="font-size:12.5px; font-weight:600; margin-top:2px;">16 Humanoids · Macarena (15s)</div>
+            <div class="mono" style="font-size:10px; color:var(--ink-dim); margin-top:2px;">Synchronized Choreography · 36 mm</div>
+          </button>
+          <button class="vtab" onclick="selectVideo(2, this)">
+            <div class="mono" style="font-size:10px; color:var(--ink-sec);">03 · 4 UNSEEN ROBOTS</div>
+            <div style="font-size:12.5px; font-weight:600; margin-top:2px;">Bumi · G1 · AgiBot X2 · Gen1</div>
+            <div class="mono" style="font-size:10px; color:var(--ink-dim); margin-top:2px;">LAFAN1 Dance2 · 15s Continuous</div>
+          </button>
+          <button class="vtab" onclick="selectVideo(3, this)">
+            <div class="mono" style="font-size:10px; color:var(--ink-sec);">04 · CLOSE-UP DETAIL</div>
+            <div style="font-size:12.5px; font-weight:600; margin-top:2px;">MagicBot Z1 · G1 · 19-DoF H1</div>
+            <div class="mono" style="font-size:10px; color:var(--ink-dim); margin-top:2px;">LAFAN1 Dance1 · 5-DoF Leg</div>
+          </button>
+          <button class="vtab" onclick="selectVideo(4, this)">
+            <div class="mono" style="font-size:10px; color:var(--ink-sec);">05 · SOLO ARTICULATION</div>
+            <div style="font-size:12.5px; font-weight:600; margin-top:2px;">Zero-Shot Unitree G1 Dance</div>
+            <div class="mono" style="font-size:10px; color:var(--ink-dim); margin-top:2px;">28.8 mm MPJPE · Single Policy</div>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- 06. INTERACTIVE 36-HUMANOID ZERO-SHOT BENCHMARK                       */
+    /* ===================================================================== -->
+    <div class="sec-bar" id="benchmark">
+      <span>02 // 33-HUMANOID OPEN-SOURCE BENCHMARK (SEED-200 + LAFAN1-60)</span>
+      <span>ALL-17: 88.2% SEED / 45.1% LAFAN &nbsp;·&nbsp; ALL-33: 79.7% SEED / 35.7% LAFAN</span>
+    </div>
+    <section class="section-pad">
+      <!-- 1. AGGREGATE HEAD-TO-HEAD BASELINE COMPARISON FIRST (ALL 33 HUMANOIDS) -->
+      <div id="baselines" style="margin-bottom:40px; padding-bottom:34px; border-bottom:1px solid var(--hairline-mid);">
+        <div class="sec-head-row" style="margin-bottom:18px;">
+          <div>
+            <div class="mono" style="font-size:10.5px; color:var(--signal); letter-spacing:0.06em; margin-bottom:6px;">MATCHED-BUDGET BASELINE COMPARISON (33 OPEN-SOURCE HUMANOIDS)</div>
+            <h2 class="sec-h2">ZeroTracker vs. Cross-Embodiment Baselines</h2>
+            <p class="sec-desc">All four methods are trained from scratch on the exact same 6-robot training set with an identical training budget and evaluated zero-shot across 27 unseen open-source humanoids (33 total).</p>
+          </div>
+          <div class="ctrl-grp" id="baseScopeBar">
+            <button class="chip active" onclick="setBaseScope('zs27', this)">All Unseen (27)</button>
+            <button class="chip" onclick="setBaseScope('clean33', this)">All 33 Humanoids</button>
+            <button class="chip" onclick="setBaseScope('zs11', this)">Std Unseen (11)</button>
+            <button class="chip" onclick="setBaseScope('seen6', this)">Training Set (6)</button>
+          </div>
+        </div>
+
+        <div class="base-panel">
+          <div class="base-panel-head">
+            <span class="mono" style="font-size:10.5px; color:var(--ink); font-weight:600;" id="aggTitle">AGGREGATE · 27 UNSEEN HUMANOIDS (ZERO-SHOT)</span>
+            <span class="mono" style="font-size:10px; color:var(--ink-dim);">BALANCE (SEED-200) · MOTION (LAFAN1-60) · ERROR (MPJPE)</span>
+          </div>
+          <div class="base-row" style="background:var(--cell-2); padding-top:9px; padding-bottom:9px; font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--ink-dim); font-weight:600;">
+            <div>METHOD</div>
+            <div>BALANCE STABILITY (SEED-200)</div>
+            <div>DYNAMIC MOTION (LAFAN1-60)</div>
+            <div style="text-align:right;">MPJPE</div>
+          </div>
+          <div id="aggMount"></div>
+          <div class="mono" id="aggSummary" style="padding:12px 16px; font-size:11px; color:var(--ink-sec); background:var(--cell-2); border-top:1px solid var(--hairline); line-height:1.6;">
+            Across all 27 unseen humanoids, ZeroTracker achieves <strong style="color:var(--signal);">+26.2% to +50.7%</strong> higher balance stability, <strong style="color:#60A5FA;">2.8× – 16.0×</strong> higher dynamic motion tracking, and <strong style="color:var(--ink);">2.0× – 2.4×</strong> lower tracking error (63.8 mm vs. 126.1–152.2 mm).
+          </div>
+        </div>
+        <div class="base-panel" style="margin-top:16px;">
+          <div class="base-panel-head">
+            <span class="mono" style="font-size:10.5px; color:var(--ink); font-weight:600;">CAPABILITY POSITIONING · 2026 CROSS-EMBODIMENT HUMANOID CONTROLLERS</span>
+            <span class="mono" style="font-size:10px; color:var(--signal);">RETARGET-FREE · ZERO ADAPTERS · ZERO PD TUNING</span>
+          </div>
+          <div style="overflow-x:auto;">
+            <table class="data-table">
+          <thead>
+            <tr>
+              <th>Method</th>
+              <th>Expressive WBC</th>
+              <th>Retarget-Free</th>
+              <th>Zero Per-Robot Adapters</th>
+              <th>No Fixed Joint Slots</th>
+              <th>Arbitrary Link &amp; DoF Transfer</th>
+              <th>Zero PD Tuning Across Masses</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong style="color:var(--ink);">XHugWBC</strong> (2026)</td>
+              <td><span class="no-mk">✗ Locomotion only</span></td>
+              <td><span class="no-mk">— (Vel-cmd only)</span></td>
+              <td><span class="ok-mk">✓</span></td>
+              <td><span class="ok-mk">✓</span></td>
+              <td><span class="no-mk">~ Limited topology</span></td>
+              <td><span class="no-mk">✗ Manual mass-scaled gains</span></td>
+            </tr>
+            <tr>
+              <td><strong style="color:var(--ink);">X-WBC / VENOM</strong> (2026)</td>
+              <td><span class="ok-mk">✓</span></td>
+              <td><span class="no-mk">✗ Offline retargeting</span></td>
+              <td><span class="no-mk">✗ Per-robot I/O heads</span></td>
+              <td><span class="no-mk">✗</span></td>
+              <td><span class="no-mk">✗ Requires adaptation</span></td>
+              <td><span class="no-mk">✗ Per-robot PD tuning</span></td>
+            </tr>
+            <tr>
+              <td><strong style="color:var(--ink);">MorphMimic</strong> (2026)</td>
+              <td><span class="ok-mk">✓</span></td>
+              <td><span class="no-mk">✗ Per-robot retargeting</span></td>
+              <td><span class="no-mk">✗ Private normalizers</span></td>
+              <td><span class="no-mk">✗ Canonical slots</span></td>
+              <td><span class="no-mk">✗ Fixed skeleton slots</span></td>
+              <td><span class="no-mk">✗ Per-robot PD tuning</span></td>
+            </tr>
+            <tr>
+              <td><strong style="color:var(--ink);">TRACE / Any2Any</strong> (2026)</td>
+              <td><span class="ok-mk">✓</span></td>
+              <td><span class="no-mk">✗ Per-robot retargeting</span></td>
+              <td><span class="no-mk">✗ Per-robot RL / LoRA</span></td>
+              <td><span class="ok-mk">✓</span></td>
+              <td><span class="no-mk">~ Static nominal model</span></td>
+              <td><span class="no-mk">✗ Per-robot PD tuning</span></td>
+            </tr>
+            <tr class="ours">
+              <td><strong>ZeroTracker (Ours)</strong></td>
+              <td><span class="ok-mk">✓ Full-Body Tracking</span></td>
+              <td><span class="ok-mk">✓ Retarget-Free</span></td>
+              <td><span class="ok-mk">✓ Zero Adapters</span></td>
+              <td><span class="ok-mk">✓ Any DoF (18–34D)</span></td>
+              <td><span class="ok-mk">✓ Instant Zero-Shot Transfer</span></td>
+              <td><span class="ok-mk">✓ Plug-and-Play (17–71 kg)</span></td>
+            </tr>
+          </tbody>
+        </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. UNIFIED 33-HUMANOID LEADERBOARD WITH INLINE PER-ROBOT BASELINE COMPARISON -->
+      <div class="sec-head-row">
+        <div>
+          <h2 class="sec-h2">Zero-Shot Generalization Across 33 Open-Source Humanoids</h2>
+          <p class="sec-desc">A single policy trained on only 6 robots generalizes zero-shot across 33 community humanoids (17.3 kg – 90.6 kg, 18 – 34 DoF) with no fine-tuning or PD retuning. Toggle <strong>Baselines</strong> to inspect per-robot URMA / Amorpheus / BodyTransformer bars inline.</p>
+        </div>
+      </div>
+
+      <div class="metric-guide">
+        <div class="mg-card">
+          <div class="mg-swatch" style="background:var(--signal);"></div>
+          <div>
+            <div class="mono" style="font-size:11px; color:var(--ink); font-weight:600;">BALANCE STABILITY (200 RANDOMIZED SEEDS)</div>
+            <div style="font-size:12.5px; color:var(--ink-sec); margin-top:3px;">Percentage of 200 diverse initial poses &amp; perturbations where the robot stays upright and balanced without falling.</div>
+          </div>
+        </div>
+        <div class="mg-card">
+          <div class="mg-swatch" style="background:#60A5FA;"></div>
+          <div>
+            <div class="mono" style="font-size:11px; color:var(--ink); font-weight:600;">DYNAMIC MOTION TRACKING (60 LAFAN1 CLIPS)</div>
+            <div style="font-size:12.5px; color:var(--ink-sec); margin-top:3px;">Percentage of 60 challenging unseen human motions (dances, sprints, turns) tracked full-body from start to finish.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="filter-bar">
+        <div class="ctrl-grp" id="benchFilters">
+          <button class="chip active" onclick="setFilter('all', this)">All 33 Robots</button>
+          <button class="chip" onclick="setFilter('zs', this)">Unseen Zero-Shot (27)</button>
+          <button class="chip" onclick="setFilter('train', this)">Training Set (6)</button>
+          <button class="chip" onclick="setFilter('light', this)">Light (&lt;35 kg)</button>
+          <button class="chip" onclick="setFilter('heavy', this)">Heavy (&gt;60 kg)</button>
+        </div>
+        <div class="ctrl-grp">
+          <button class="chip sig-active" id="btnToggleBase" onclick="toggleInlineBaselines()">Baselines: ON</button>
+          <span class="mono" style="font-size:11px; color:var(--ink-dim); align-self:center; margin:0 4px;">SORT:</span>
+          <button class="chip active" id="sSeed" onclick="setSort('seed')">Balance ↓</button>
+          <button class="chip" id="sLafan" onclick="setSort('lafan')">Motion</button>
+          <button class="chip" id="sHeight" onclick="setSort('height')">Height</button>
+          <button class="chip" id="sMass" onclick="setSort('mass')">Mass</button>
+        </div>
+      </div>
+
+      <div class="bench-table-wrap">
+        <div class="leg-row" id="inlineBaseLegend">
+          <span>INLINE BASELINES (ALL 33 HUMANOIDS):</span>
+          <span><i class="leg-dot" style="background:#34D399;"></i><strong style="color:var(--ink);">ZeroTracker (Ours)</strong></span>
+          <span><i class="leg-dot" style="background:#94A3B8;"></i>URMA (CoRL'24)</span>
+          <span><i class="leg-dot" style="background:#F59E0B;"></i>Amorpheus</span>
+          <span><i class="leg-dot" style="background:#64748B;"></i>BodyTransformer</span>
+        </div>
+        <div class="bench-head">
+          <div>HUMANOID PLATFORM</div>
+          <div class="bh-sort" id="thHeight" onclick="setSort('height')">HEIGHT</div>
+          <div class="bh-sort" id="thMass" onclick="setSort('mass')">MASS · DOF</div>
+          <div class="bh-sort active" id="thSeed" onclick="setSort('seed')">BALANCE STABILITY ↓</div>
+          <div class="bh-sort" id="thLafan" onclick="setSort('lafan')">DYNAMIC MOTION</div>
+        </div>
+        <div id="benchMount"></div>
+        <button class="bench-expand-bar" id="benchExpandBtn" onclick="toggleBenchExpand()">SHOW ALL 33 ROBOTS (+28 MORE) ↓</button>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- 05. UNIFIED ARCHITECTURE & LOCAL PASSIVITY PROOF                      */
+    /* ===================================================================== -->
+    <div class="sec-bar" id="method">
+      <span>03 // METHOD &amp; SHADOW-PUPPETRY MECHANISM · 3 BARRIERS → ARCHITECTURE → X-RAY</span>
+      <span>END-TO-END · RETARGET-FREE · STRICTLY PASSIVE</span>
+    </div>
+    <!-- Shadow-Puppetry Core Analogy Strip -->
+    <section style="display:grid; grid-template-columns:repeat(3,1fr); border-bottom:1px solid var(--hairline); background:rgba(245,158,11,0.04);">
+      <div style="padding:18px 30px; border-right:1px solid var(--hairline);">
+        <div class="mono" style="font-size:10px; color:#FCD34D; letter-spacing:0.06em;">PUPPETEER PRINCIPLE 01 // THE 9 STRINGS</div>
+        <div style="font-size:13px; color:var(--ink-sec); margin-top:4px; line-height:1.55;">
+          Every humanoid is driven through the same <strong style="color:var(--ink);">9 universal anchor strings</strong>. A skilled puppeteer never over-pulls a shorter puppet off balance—<strong style="color:var(--signal);">KinNet</strong> coordinates the whole body onto its feasible manifold.
+        </div>
+      </div>
+      <div style="padding:18px 30px; border-right:1px solid var(--hairline);">
+        <div class="mono" style="font-size:10px; color:#FCD34D; letter-spacing:0.06em;">PUPPETEER PRINCIPLE 02 // THE RODS &amp; JOINTS</div>
+        <div style="font-size:13px; color:var(--ink-sec); margin-top:4px; line-height:1.55;">
+          Different puppets have different limb lengths and joint counts. <strong style="color:var(--signal);">DynNet</strong> translates string wrenches into exact joint torques online via <strong style="color:var(--ink);">J(q)ᵀ &amp; Gram JᵀJ</strong>.
+        </div>
+      </div>
+      <div style="padding:18px 30px;">
+        <div class="mono" style="font-size:10px; color:#FCD34D; letter-spacing:0.06em;">PUPPETEER PRINCIPLE 03 // THE PUPPETEER'S WRIST</div>
+        <div style="font-size:13px; color:var(--ink-sec); margin-top:4px; line-height:1.55;">
+          A puppeteer uses a gentle touch on a 17 kg marionette and firm damping on a 71 kg figure. <strong style="color:var(--signal);">Adaptive Impedance (K,D ≻ 0)</strong> scales compliance automatically with zero PD tuning.
+        </div>
+      </div>
+    </section>
+
+    <section class="barriers-3">
+      <!-- BARRIER 01: Interactive Kinematic Over-Pulling vs KinNet Whole-Body Feasibility -->
+      <div class="b-cell">
+        <div class="b-num">BARRIER 01 // KINEMATIC OVER-PULLING</div>
+        <h3 style="font-size:18px; font-weight:600; letter-spacing:-0.02em; margin-bottom:8px;">Unreachable Targets Break Whole-Body Feasibility &amp; Balance</h3>
+        <div class="b-diagram">
+          <canvas id="b1Canvas" width="340" height="152"></canvas>
+          <div class="b-lab-ctrl">
+            <div class="ctrl-grp">
+              <button class="chip warn-active" id="b1Naive" onclick="setB1Mode(false)">Naive</button>
+              <button class="chip" id="b1Kin" onclick="setB1Mode(true)">KinNet</button>
+            </div>
+            <div style="display:flex; align-items:center; gap:6px; flex:1;">
+              <span>PULL</span>
+              <input class="b-slider" id="b1Pull" type="range" min="35" max="155" value="128" oninput="drawB1()" />
+              <span id="b1Val" style="width:34px; text-align:right; color:var(--ink);">128%</span>
+            </div>
+          </div>
+        </div>
+        <p style="font-size:13.5px; color:var(--ink-sec); line-height:1.68;">
+          Shorter-limbed or ankle-constrained unseen robots (e.g., 19-DoF Unitree H1, 17.3 kg Bumi) cannot realize raw human targets. Drag <strong>PULL &gt; 100%</strong> and toggle <strong>Naive vs KinNet</strong> to see balance preservation.
+        </p>
+        <div class="b-fix">→ RESOLVED BY KINNET: 3-step stateless feasible subspace projection + single-frame analytical tangent velocity.</div>
+      </div>
+
+      <!-- BARRIER 02: Interactive Link-Length Scaling & Exact J^T / Gram Routing -->
+      <div class="b-cell">
+        <div class="b-num">BARRIER 02 // TORQUE MISALLOCATION</div>
+        <h3 style="font-size:18px; font-weight:600; letter-spacing:-0.02em; margin-bottom:8px;">Altered Link Geometries Break Learned Joint Couplings</h3>
+        <div class="b-diagram">
+          <canvas id="b2Canvas" width="340" height="152"></canvas>
+          <div class="b-lab-ctrl">
+            <div class="ctrl-grp">
+              <button class="chip" id="b2Fixed" onclick="setB2Mode(false)">Graph Mask</button>
+              <button class="chip active" id="b2Dual" onclick="setB2Mode(true)">Jᵀ &amp; Gram</button>
+            </div>
+            <div style="display:flex; align-items:center; gap:6px; flex:1;">
+              <span>LIMB</span>
+              <input class="b-slider" id="b2Scale" type="range" min="70" max="140" value="120" oninput="drawB2()" />
+              <span id="b2Val" style="width:34px; text-align:right; color:var(--ink);">1.2×</span>
+            </div>
+          </div>
+        </div>
+        <p style="font-size:13.5px; color:var(--ink-sec); line-height:1.68;">
+          Slide <strong>LIMB</strong> from 0.7× (Bumi) to 1.4× (Gen1): fixed skeletal masks misallocate joint torque when lever arms change, whereas online <strong>J(q)ᵀ &amp; Gram JᵀJ</strong> exact-scales torque distribution instantly.
+        </p>
+        <div class="b-fix">→ RESOLVED BY DYNNET: Bidirectional J(q)ᵀ wrench pullback, Gram JᵀJ joint attention bias, and J(q) motion pushforward.</div>
+      </div>
+
+      <!-- BARRIER 03: Interactive Mass Shift (17 kg -> 71 kg) & Impulse Response -->
+      <div class="b-cell">
+        <div class="b-num">BARRIER 03 // IMPEDANCE MISMATCH</div>
+        <h3 style="font-size:18px; font-weight:600; letter-spacing:-0.02em; margin-bottom:8px;">Fixed-Gain PD Triggers Light-Limb Chatter or Heavy Collapse</h3>
+        <div class="b-diagram">
+          <canvas id="b3Canvas" width="340" height="152"></canvas>
+          <div class="b-lab-ctrl">
+            <div style="display:flex; align-items:center; gap:6px; flex:1;">
+              <span>MASS</span>
+              <input class="b-slider" id="b3Mass" type="range" min="17" max="75" value="17" oninput="drawB3()" />
+              <span id="b3Val" style="width:38px; text-align:right; color:var(--ink);">17kg</span>
+            </div>
+            <button class="chip" onclick="setB3Mass(17)">17kg</button>
+            <button class="chip" onclick="setB3Mass(34)">34kg</button>
+            <button class="chip" onclick="setB3Mass(71)">71kg</button>
+          </div>
+        </div>
+        <p style="font-size:13.5px; color:var(--ink-sec); line-height:1.68;">
+          Slide <strong>MASS</strong> from 17 kg to 75 kg: Fixed-PD violently rings on lightweight limbs (17 kg) and sags/collapses under heavy inertia (71 kg), while <strong>ZeroTracker Passive (K,D≻0)</strong> stays critically damped across every mass.
+        </p>
+        <div class="b-fix">→ RESOLVED BY ADAPTIVE IMPEDANCE: Online K_a ≻ 0, D_a ≻ 0, d_q &gt; 0 forming a strictly passive energy-dissipation port.</div>
+      </div>
+    </section>
+
+
+
+    <section class="section-pad">
+      <h2 class="sec-h2">How the Puppeteer Works: Shared Strings × Exact Body Mechanics</h2>
+      <p class="sec-desc">Instead of bolting together ad-hoc modules, ZeroTracker applies the exact same puppeteer factorization—<em>shared neural coordination over 9 universal anchor strings × exact online differential mechanics</em>—from kinematic feasibility to torque actuation.</p>
+
+      <div class="arch-frame">
+        <img src="./assets/dualzero_architecture.svg" alt="ZeroTracker Architecture Diagram" />
+      </div>
+
+      <div class="theorem-box">
+        <div class="mono" style="font-size:11px; color:var(--signal); letter-spacing:0.08em; margin-bottom:8px;">PROPOSITION 1 // LOCAL PASSIVITY &amp; STRICT KINETIC ENERGY DISSIPATION</div>
+        <div style="font-family:Georgia,serif; font-size:17px; color:var(--ink); margin-bottom:10px;">
+          τ = τ<sub>grav</sub> + J(q)<sup>⊤</sup>(w<sub>a</sub> + K<sub>a</sub>e<sub>a</sub> + D<sub>a</sub>ė<sub>a</sub>) + u<sub>j</sub> − d<sub>q</sub>(q̇ − q̇<sub>ref</sub>), &nbsp;&nbsp; K<sub>a</sub> ≻ 0, &nbsp; D<sub>a</sub> ≻ 0, &nbsp; d<sub>q</sub> &gt; 0
+        </div>
+        <p style="font-size:13.5px; color:var(--ink-sec); line-height:1.7;">
+          Under locally quasi-static references (ẋ<sub>a</sub><sup>ref</sup> ≈ 0, q̇<sub>ref</sub> ≈ 0) and locally frozen positive-definite gains, defining the virtual task-space elastic potential V(e<sub>a</sub>) = ½ e<sub>a</sub><sup>⊤</sup> K<sub>a</sub> e<sub>a</sub> ≥ 0 yields:
+        </p>
+        <div style="font-family:Georgia,serif; font-size:16px; color:var(--ink); margin-top:8px;">
+          d/dt [ T(q, q̇) + V(e<sub>a</sub>) ] = (τ<sub>grav</sub> + J<sup>⊤</sup>w<sub>a</sub> + u<sub>j</sub>)<sup>⊤</sup>q̇ &nbsp;<span style="color:var(--signal); font-weight:700;">− ẋ<sub>a</sub><sup>⊤</sup>D<sub>a</sub>ẋ<sub>a</sub> − q̇<sup>⊤</sup>d<sub>q</sub>q̇</span>, &nbsp;&nbsp; where −ẋ<sub>a</sub><sup>⊤</sup>D<sub>a</sub>ẋ<sub>a</sub> − q̇<sup>⊤</sup>d<sub>q</sub>q̇ ≤ 0.
+        </div>
+      </div>
+    </section>
+
+    <!-- Interactive 9-String Shadow-Puppetry Playground (DLSS Split Curtain + Draggable 9-Strings) -->
+    <section class="section-pad" style="padding-top:30px; padding-bottom:34px;">
+      <div class="sec-head-row" style="margin-bottom:16px;">
+        <div>
+          <div class="mono" style="font-size:10.5px; color:#FCD34D; letter-spacing:0.06em; margin-bottom:4px;">INTERACTIVE PLAYGROUND // TRY PULLING THE 9 UNIVERSAL STRINGS</div>
+          <h3 style="font-size:20px; font-weight:600; letter-spacing:-0.025em;">Hands-On Shadow-Puppetry Mechanism X-Ray</h3>
+          <p class="sec-desc" style="font-size:13px;">Grab any of the 9 glowing handles to pull the puppet strings, slide the vertical curtain to reveal the shadow-puppet mechanism behind the robot, or switch between <strong>ZeroTracker (K,D≻0)</strong> and <strong>Fixed-PD</strong>.</p>
+        </div>
+      </div>
+
+      <div class="hero-lab" style="border:1px solid var(--hairline-mid);">
+        <div class="lab-bar">
+          <div class="ctrl-grp" id="morphBar">
+            <button class="chip" onclick="setMorph(0)">17kg Bumi</button>
+            <button class="chip active" onclick="setMorph(1)">34kg G1</button>
+            <button class="chip" onclick="setMorph(2)">51kg H1 (19D)</button>
+            <button class="chip" onclick="setMorph(3)">67kg Gen1</button>
+          </div>
+          <div class="ctrl-grp">
+            <button class="chip active" id="btnDual" onclick="setMode(true)">ZeroTracker (K,D≻0)</button>
+            <button class="chip" id="btnFixed" onclick="setMode(false)">Fixed-PD</button>
+            <button class="push-btn" onclick="injectPush()">Push 1.2 m/s</button>
+          </div>
+        </div>
+
+        <div class="lab-bar sub">
+          <div class="ctrl-grp" id="motionBar">
+            <span class="mono" style="font-size:10px; color:var(--ink-dim); margin-right:2px;">MOTION:</span>
+            <button class="chip sig-active" onclick="setMotion('manual', this)">Drag 9 Strings</button>
+            <button class="chip" onclick="setMotion('salsa', this)">Salsa Groove</button>
+            <button class="chip" onclick="setMotion('macarena', this)">Macarena</button>
+            <button class="chip" onclick="setMotion('squat', this)">Squat &amp; Reach</button>
+          </div>
+          <div class="ctrl-grp">
+            <button class="chip" onclick="setSplit(0.50)">Split 50/50</button>
+            <button class="chip" onclick="setSplit(0.08)">Full X-Ray</button>
+          </div>
+        </div>
+
+        <div class="stage-wrap">
+          <canvas id="puppet3d" style="width:100%; height:390px; display:block; touch-action:none;"></canvas>
+          <div class="stage-hint">DRAG ANY OF THE 9 RING HANDLES TO PULL · SLIDE CENTER BAR TO COMPARE ROBOT / SHADOW-PUPPET X-RAY</div>
+        </div>
+
+        <div class="mech-dock">
+          <div class="mech-cell">
+            <div class="mech-title">
+              <span>01 // KINNET PROJECTION</span>
+              <span id="kinStatus" style="color:var(--signal);">FEASIBLE</span>
+            </div>
+            <div style="color:var(--ink-sec); font-size:10px; margin-bottom:6px;">
+              DRIVER: <strong id="kinDriver" style="color:var(--ink);">9-STRING MANUAL</strong>
+            </div>
+            <div class="mbar-row">
+              <span style="width:48px; color:var(--ink-dim); font-size:9.5px;">CLAMP</span>
+              <div class="mbar-bg"><div class="mbar-fill" id="barClamp" style="width:4%; background:var(--signal);"></div></div>
+              <span id="valClamp" style="width:30px; text-align:right; color:var(--ink); font-size:9.5px;">0%</span>
+            </div>
+            <div class="mbar-row" style="margin-bottom:0;">
+              <span style="width:48px; color:var(--ink-dim); font-size:9.5px;">CoM</span>
+              <div class="mbar-bg"><div class="mbar-fill" id="barCom" style="width:94%; background:#60A5FA;"></div></div>
+              <span id="valCom" style="width:30px; text-align:right; color:#60A5FA; font-size:9.5px;">SAFE</span>
+            </div>
+          </div>
+
+          <div class="mech-cell" style="display:flex; gap:10px; align-items:center;">
+            <div style="flex:1;">
+              <div class="mech-title" style="margin-bottom:4px;"><span>02 // DYNNET GRAM JᵀJ</span></div>
+              <div style="font-size:9.5px; color:var(--ink-sec); line-height:1.45;">
+                Live <span style="color:var(--signal);">Jᵀ</span> wrench pullback &amp; joint coupling:
+                <div id="dynPair" style="color:var(--ink); margin-top:3px; font-weight:600;">TORSO ⇄ LEGS</div>
+              </div>
+            </div>
+            <canvas id="gramCanvas" width="88" height="88" style="border:1px solid var(--hairline-mid); background:#07090D; flex-shrink:0;"></canvas>
+          </div>
+
+          <div class="mech-cell">
+            <div class="mech-title">
+              <span>03 // IMPEDANCE PORT</span>
+              <span id="impMode" style="color:var(--signal);">K,D ≻ 0</span>
+            </div>
+            <div class="mbar-row">
+              <span style="width:28px; color:var(--ink-dim); font-size:9.5px;">K_a</span>
+              <div class="mbar-bg"><div class="mbar-fill" id="barK" style="width:55%; background:var(--signal);"></div></div>
+              <span id="valK" style="width:34px; text-align:right; color:var(--ink); font-size:9.5px;">1.00×</span>
+            </div>
+            <div class="mbar-row" style="margin-bottom:6px;">
+              <span style="width:28px; color:var(--ink-dim); font-size:9.5px;">D_a</span>
+              <div class="mbar-bg"><div class="mbar-fill" id="barD" style="width:58%; background:#F59E0B;"></div></div>
+              <span id="valD" style="width:34px; text-align:right; color:var(--ink); font-size:9.5px;">1.00×</span>
+            </div>
+            <canvas id="energyCanvas" width="170" height="24" style="width:100%; height:24px; display:block; background:#07090D; border:1px solid var(--hairline);"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ===================================================================== -->
+    <!-- 07. MECHANISTIC ABLATIONS & ROBUSTNESS                                */
+    /* ===================================================================== -->
+    <div class="sec-bar" id="ablations">
+      <span>04 // ABLATION STUDY (MATCHED TRAINING BUDGET)</span>
+      <span>5-ROBOT CROSS-EMBODIMENT SLICE: K1 · G1 · X2 · H2 · H1</span>
+    </div>
+    <section class="section-pad">
+      <div class="sec-head-row">
+        <div>
+          <h2 class="sec-h2">Ablation Study &amp; Component Analysis</h2>
+          <p class="sec-desc">Evaluated on a 5-robot slice spanning 19.7 kg to 71.3 kg and 19 to 31 DoF. Switch between the 4-Step Incremental Build, Leave-One-Out Retrains, and Zero-Training Diagnostics.</p>
+        </div>
+        <div class="ctrl-grp">
+          <button class="chip active" onclick="showAbTab(0, this)">4-Step Incremental</button>
+          <button class="chip" onclick="showAbTab(1, this)">Leave-One-Out &amp; Push</button>
+          <button class="chip" onclick="showAbTab(2, this)">Analytical Vel &amp; IMU Drift</button>
+        </div>
+      </div>
+
+      <!-- Tab 0: 4-Step Incremental (Visual Progression Waterfall) -->
+      <div id="abTab0">
+        <div class="wf-wrap">
+          <div class="wf-head">
+            <div>PROGRESSIVE BUILD STEP</div>
+            <div>BALANCE STABILITY (SEED-200)</div>
+            <div>DYNAMIC MOTION (LAFAN1-60)</div>
+            <div style="text-align:right;">TRACKING ERROR</div>
+          </div>
+
+          <div class="wf-row">
+            <div>
+              <div class="mono" style="font-size:10px; color:var(--ink-dim);">STEP 0 // BASELINE</div>
+              <div style="font-size:14px; font-weight:600; margin-top:2px;">Unconstrained Policy + Fixed PD</div>
+            </div>
+            <div>
+              <div class="bar-cell">
+                <div class="bar-bg"><div class="bar-fill" style="width:31.6%; background:#64748B;"></div></div>
+                <div class="bar-num" style="color:var(--ink-sec);">31.6%</div>
+              </div>
+            </div>
+            <div>
+              <div class="bar-cell">
+                <div class="bar-bg"><div class="bar-fill" style="width:1%; background:var(--warn);"></div></div>
+                <div class="bar-num" style="color:var(--warn);">0.0%</div>
+              </div>
+            </div>
+            <div class="mono" style="text-align:right; font-size:12.5px; color:var(--ink-sec);">112.6 mm</div>
+          </div>
+
+          <div class="wf-row">
+            <div>
+              <div class="mono" style="font-size:10px; color:#60A5FA;">STEP 1 // + KINNET PROJECTION</div>
+              <div style="font-size:14px; font-weight:600; margin-top:2px;">Feasible Subspace Projection</div>
+            </div>
+            <div>
+              <div class="bar-cell">
+                <div class="bar-bg"><div class="bar-fill" style="width:46.3%; background:#60A5FA;"></div></div>
+                <div class="bar-num" style="width:auto; color:var(--ink);">46.3%<span class="wf-delta">+14.7</span></div>
+              </div>
+            </div>
+            <div>
+              <div class="bar-cell">
+                <div class="bar-bg"><div class="bar-fill" style="width:12.0%; background:#60A5FA;"></div></div>
+                <div class="bar-num" style="width:auto; color:var(--ink);">12.0%<span class="wf-delta">+12.0</span></div>
+              </div>
+            </div>
+            <div class="mono" style="text-align:right; font-size:12.5px; color:var(--ink);">76.7 mm <span style="color:var(--signal); font-size:11px;">(−35.9)</span></div>
+          </div>
+
+          <div class="wf-row">
+            <div>
+              <div class="mono" style="font-size:10px; color:#F59E0B;">STEP 2 // + DUAL-SPACE ROUTING</div>
+              <div style="font-size:14px; font-weight:600; margin-top:2px;">Online J / Jᵀ &amp; Gram Coupling</div>
+            </div>
+            <div>
+              <div class="bar-cell">
+                <div class="bar-bg"><div class="bar-fill" style="width:76.8%; background:#F59E0B;"></div></div>
+                <div class="bar-num" style="width:auto; color:var(--ink);">76.8%<span class="wf-delta">+30.5</span></div>
+              </div>
+            </div>
+            <div>
+              <div class="bar-cell">
+                <div class="bar-bg"><div class="bar-fill" style="width:21.0%; background:#F59E0B;"></div></div>
+                <div class="bar-num" style="width:auto; color:var(--ink);">21.0%<span class="wf-delta">+9.0</span></div>
+              </div>
+            </div>
+            <div class="mono" style="text-align:right; font-size:12.5px; color:var(--ink);">57.1 mm <span style="color:var(--signal); font-size:11px;">(−19.6)</span></div>
+          </div>
+
+          <div class="wf-row full">
+            <div>
+              <div class="mono" style="font-size:10px; color:var(--signal);">STEP 3 // FULL ZEROTRACKER</div>
+              <div style="font-size:14.5px; font-weight:600; color:var(--ink); margin-top:2px;">+ Passive Adaptive Impedance</div>
+            </div>
+            <div>
+              <div class="bar-cell">
+                <div class="bar-bg"><div class="bar-fill" style="width:94.0%; background:var(--signal);"></div></div>
+                <div class="bar-num" style="width:auto; color:var(--signal); font-weight:700;">94.0%<span class="wf-delta">+17.2</span></div>
+              </div>
+            </div>
+            <div>
+              <div class="bar-cell">
+                <div class="bar-bg"><div class="bar-fill" style="width:54.7%; background:var(--signal);"></div></div>
+                <div class="bar-num" style="width:auto; color:var(--signal); font-weight:700;">54.7%<span class="wf-delta">+33.7</span></div>
+              </div>
+            </div>
+            <div class="mono" style="text-align:right; font-size:13px; color:var(--signal); font-weight:700;">49.7 mm <span style="font-size:11px;">(−7.4)</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 1: Leave-One-Out Table -->
+      <div id="abTab1" style="display:none; overflow-x:auto;">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Variant (Matched Training Budget)</th>
+              <th>SEED-200 SR</th>
+              <th>LAFAN1-60 SR</th>
+              <th>Yaw MPJPE</th>
+              <th>HF &gt; 12Hz (SEED / LAFAN)</th>
+              <th>Push SR (0.8 / 1.2 m/s)</th>
+              <th>Key Failure Mode</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="ours">
+              <td>ZeroTracker (Full)</td>
+              <td>94.0%</td>
+              <td>54.7%</td>
+              <td>49.7 mm</td>
+              <td>3.9% / 3.9%</td>
+              <td style="color:var(--signal);">92.4% / 89.5%</td>
+              <td>Balanced across 19.7–71.3 kg</td>
+            </tr>
+            <tr>
+              <td>w/o KinNet</td>
+              <td>88.4%</td>
+              <td>44.7%</td>
+              <td style="color:var(--warn);">81.5 mm</td>
+              <td>6.3% / 5.9%</td>
+              <td>—</td>
+              <td>19-DoF H1 LAFAN collapses to <strong>0.0%</strong></td>
+            </tr>
+            <tr>
+              <td>w/o J/Jᵀ &amp; Gram</td>
+              <td>90.3%</td>
+              <td>42.7%</td>
+              <td>47.7 mm</td>
+              <td style="color:var(--warn);">6.8% / 6.7%</td>
+              <td>—</td>
+              <td>High-freq chatter doubles; H1 LAFAN 3.3%</td>
+            </tr>
+            <tr>
+              <td>Binary Skeletal Mask</td>
+              <td>90.6%</td>
+              <td>47.3%</td>
+              <td>46.0 mm</td>
+              <td style="color:var(--warn);">6.8% / 7.2%</td>
+              <td>—</td>
+              <td>Multi-hop bottleneck; H1 LAFAN 6.7%</td>
+            </tr>
+            <tr>
+              <td>Fixed PD (w/o Adapt Imp)</td>
+              <td style="color:var(--warn);">76.8%</td>
+              <td style="color:var(--warn);">21.0%</td>
+              <td>57.1 mm</td>
+              <td>3.2% / 3.1%</td>
+              <td style="color:var(--warn);">61.3% / 47.8%</td>
+              <td>Heavy H2 &amp; H1 LAFAN both <strong>0.0%</strong></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Tab 2: Zero-Training Diagnostics -->
+      <div id="abTab2" style="display:none;">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+          <div class="ab-card">
+            <div class="mono" style="font-size:11px; color:var(--signal); margin-bottom:8px;">DIAGNOSTIC A // ANALYTICAL TANGENT VELOCITY</div>
+            <p style="font-size:13.5px; color:var(--ink-sec); margin-bottom:14px;">Replacing single-frame analytical velocity projection <code class="mono" style="color:var(--ink);">qd_kin</code> with finite differences immediately nearly doubles high-frequency energy:</p>
+            <div class="mono" style="font-size:13px; display:grid; gap:6px;">
+              <div>ZeroTracker (Analytical Vel): <strong style="color:var(--signal);">HF12% = 4.4%</strong> · Jerk = 1246.9 rad/s³</div>
+              <div>w/o Analytical Vel (FD): <strong style="color:var(--warn);">HF12% = 8.0%</strong> · Jerk = 1363.4 rad/s³</div>
+              <div style="color:var(--ink-dim); font-size:11.5px;">(Zero-Shot Unitree G1 spikes from 3.7% → 8.1%; H1 LAFAN drops 23.3% → 15.0%)</div>
+            </div>
+          </div>
+          <div class="ab-card">
+            <div class="mono" style="font-size:11px; color:var(--signal); margin-bottom:8px;">DIAGNOSTIC B // +180° IMU YAW-DRIFT IMMUNITY (PURE GYRO)</div>
+            <p style="font-size:13.5px; color:var(--ink-sec); margin-bottom:14px;">With 25% yaw-anchor dropout during training, the same policy supports pure-gyroscope deployment immune to magnetometer drift:</p>
+            <div class="mono" style="font-size:13px; display:grid; gap:6px;">
+              <div>STAND (+180° step): <strong style="color:var(--signal);">100% Surv · 0.26°/s</strong> (Compass baseline: 13.84°/s)</div>
+              <div>LAFAN Dance2 (+180° step): <strong style="color:var(--signal);">100% Surv · 2.33°/s</strong> (Compass: 37.5% surv)</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- 08. BIBTEX & FOOTER                                                   */
+    /* ===================================================================== -->
+    <div class="sec-bar" id="bibtex">
+      <span>05 // CITATION &amp; ARTIFACTS</span>
+      <span>OPEN-SOURCE RELEASE UPON ACCEPTANCE</span>
+    </div>
+    <section class="section-pad" style="border-bottom:none;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+        <h2 class="sec-h2" style="font-size:22px;">BibTeX</h2>
+        <button class="chip" onclick="copyBib()">Copy BibTeX</button>
+      </div>
+      <pre class="bib-box" id="bibCode">@article{zerotracker2026,
+  title   = {ZeroTracker: Enabling Zero-Shot Cross-Embodiment Whole-Body Control via Dual-Space Jacobian Transformers},
+  author  = {Anonymous Authors},
+  journal = {arXiv preprint},
+  year    = {2026}
+}</pre>
+      <div class="mono" style="margin-top:32px; font-size:11px; color:var(--ink-dim); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;">
+        <span>ZEROTRACKER · ZERO-SHOT CROSS-EMBODIMENT WHOLE-BODY CONTROL</span>
+        <span>ZERO-SHOT · RETARGET-FREE · PASSIVE IMPEDANCE</span>
+      </div>
+    </section>
+  </div>
+
+  <div class="toast" id="toast">COPIED</div>
+
+  <script>
+    // =========================================================================
+    // 1. MUJOCO WASM 3D HERO VIEWER BRIDGES
+    // =========================================================================
+    window._mjViewer = null;
+    window.mjSelectRobot = function(rkey, btn) {
+      document.querySelectorAll('#mjRobotBar .chip').forEach(b => b.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+      if (window._mjViewer) window._mjViewer.setRobot(rkey);
+    };
+    window.mjSelectMotion = function(mkey, btn) {
+      document.querySelectorAll('#mjMotionBar .chip').forEach(b => b.classList.remove('sig-active'));
+      if (btn) btn.classList.add('sig-active');
+      if (window._mjViewer) window._mjViewer.setMotion(mkey);
+    };
+    window.mjToggleStrings = function() {
+      if (!window._mjViewer) return;
+      const on = window._mjViewer.toggleStrings();
+      const btn = document.getElementById('mjStringsBtn');
+      btn.textContent = on ? '9-Strings: ON' : '9-Strings: OFF';
+      btn.className = on ? 'chip sig-active' : 'chip';
+    };
+    window.mjResetCam = function() {
+      if (window._mjViewer) window._mjViewer.resetCamera();
+    };
+
+    // =========================================================================
+    // 1B. SECTION-03 INTERACTIVE 9-STRING SHADOW-PUPPETRY PLAYGROUND
+    // =========================================================================
+    (function initPuppetPlayground() {
+      const cv = document.getElementById('puppet3d');
+      const gcv = document.getElementById('gramCanvas');
+      const ecv = document.getElementById('energyCanvas');
+      if (!cv || !gcv || !ecv) return;
+      const ctx = cv.getContext('2d');
+      const gctx = gcv.getContext('2d');
+      const ectx = ecv.getContext('2d');
+
+      const MORPHS = [
+        { name: "Noetix Bumi · 17kg · 21D", h: 0.74, w: 0.80, m: 0.55, kScale: 0.55, dScale: 0.62, armor: '#CBD5E1', visor: '#0F172A' },
+        { name: "Unitree G1 · 34kg · 29D", h: 0.96, w: 0.96, m: 1.00, kScale: 1.00, dScale: 1.00, armor: '#E2E8F0', visor: '#111827' },
+        { name: "Unitree H1 · 51kg · 19D", h: 1.15, w: 1.04, m: 1.38, kScale: 1.42, dScale: 1.36, armor: '#94A3B8', visor: '#090D16' },
+        { name: "MagicBot Gen1 · 67kg · 30D", h: 1.20, w: 1.12, m: 1.65, kScale: 1.72, dScale: 1.60, armor: '#F1F5F9', visor: '#0B1120' }
+      ];
+      const ANCHOR_NAMES = { head:'HEAD', torso:'TORSO', pelvis:'PELVIS', lhand:'L.HAND', rhand:'R.HAND', lknee:'L.KNEE', rknee:'R.KNEE', lfoot:'L.FOOT', rfoot:'R.FOOT' };
+      const ANCHOR_KEYS = Object.keys(ANCHOR_NAMES);
+
+      let curMorph = 1, isDualZero = true, curMotion = 'manual';
+      let splitRatio = 0.50, draggingSplit = false;
+      let draggedAnchor = null, hoveredAnchor = null, rawPull = null;
+      let pushVel = 0, lean = 0, leanV = 0, chatterPhase = 0, pushFlash = 0, tClock = 0;
+      const energyHist = new Array(80).fill(0.05);
+      let lastP = {};
+
+      window.setMorph = function(idx) {
+        curMorph = idx;
+        document.querySelectorAll('#morphBar .chip').forEach((b, i) => b.classList.toggle('active', i === idx));
+        pushVel += 0.28;
+      };
+      window.setMode = function(dual) {
+        isDualZero = dual;
+        document.getElementById('btnDual').className = dual ? 'chip active' : 'chip';
+        document.getElementById('btnFixed').className = !dual ? 'chip warn-active' : 'chip';
+        const im = document.getElementById('impMode');
+        im.textContent = dual ? 'K,D ≻ 0 PASSIVE' : 'FIXED-PD RING!';
+        im.style.color = dual ? '#34D399' : '#F43F5E';
+        if (!dual) pushVel += 0.55;
+      };
+      window.setMotion = function(m, btn) {
+        curMotion = m;
+        document.querySelectorAll('#motionBar .chip').forEach(b => b.classList.remove('sig-active'));
+        if (btn) btn.classList.add('sig-active');
+        draggedAnchor = null; rawPull = null;
+      };
+      window.setSplit = function(r) { splitRatio = Math.max(0.04, Math.min(0.96, r)); };
+      window.injectPush = function() { pushVel = 1.55 / Math.sqrt(MORPHS[curMorph].m); pushFlash = 1.0; };
+
+      const STAGE_SCALE = 172;
+      let viewW = 960, viewH = 390;
+      function syncCanvasSize() {
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        const rw = cv.clientWidth || 960;
+        const rh = cv.clientHeight || 390;
+        if (cv.width !== Math.round(rw * dpr) || cv.height !== Math.round(rh * dpr)) {
+          cv.width = Math.round(rw * dpr);
+          cv.height = Math.round(rh * dpr);
+        }
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        viewW = rw; viewH = rh;
+      }
+      syncCanvasSize();
+      window.addEventListener('resize', syncCanvasSize);
+
+      const w2c = (x, z, W, H) => ({ u: W * 0.50 + x * STAGE_SCALE, v: H * 0.87 - z * STAGE_SCALE });
+      const c2w = (u, v, W, H) => ({ x: (u - W * 0.50) / STAGE_SCALE, z: (H * 0.87 - v) / STAGE_SCALE });
+
+      function solve2Bone(root, target, L1, L2, bendDir) {
+        const dx = target[0] - root[0], dz = target[1] - root[1];
+        const dRaw = Math.hypot(dx, dz);
+        const maxR = (L1 + L2) * 0.992, minR = Math.abs(L1 - L2) + 0.04;
+        const d = Math.max(minR, Math.min(maxR, dRaw));
+        const ux = dRaw > 1e-5 ? dx / dRaw : 0, uz = dRaw > 1e-5 ? dz / dRaw : -1;
+        const end = [root[0] + ux * d, root[1] + uz * d];
+        const a = (L1 * L1 - L2 * L2 + d * d) / (2 * d);
+        const h = Math.sqrt(Math.max(0, L1 * L1 - a * a));
+        const mx = root[0] + ux * a, mz = root[1] + uz * a;
+        return { mid: [mx - uz * h * bendDir, mz + ux * h * bendDir], end, clamped: dRaw > maxR, overDist: Math.max(0, dRaw - maxR) };
+      }
+
+      function getCanvasXY(e) {
+        const r = cv.getBoundingClientRect();
+        const cx = (e.touches ? e.touches[0].clientX : e.clientX) - r.left;
+        const cy = (e.touches ? e.touches[0].clientY : e.clientY) - r.top;
+        return { u: cx, v: cy };
+      }
+      function onDown(e) {
+        const { u, v } = getCanvasXY(e);
+        const splitX = viewW * splitRatio;
+        let bestK = null, bestD = 24;
+        ANCHOR_KEYS.forEach(k => {
+          if (!lastP[k]) return;
+          const d = Math.hypot(u - lastP[k].u, v - lastP[k].v);
+          if (d < bestD) { bestD = d; bestK = k; }
+        });
+        if (bestK) { draggedAnchor = bestK; rawPull = c2w(u, v, viewW, viewH); cv.style.cursor = 'grabbing'; e.preventDefault(); return; }
+        if (Math.abs(u - splitX) < 24) { draggingSplit = true; cv.style.cursor = 'ew-resize'; e.preventDefault(); }
+      }
+      function onMove(e) {
+        const { u, v } = getCanvasXY(e);
+        if (draggingSplit) { splitRatio = Math.max(0.05, Math.min(0.95, u / viewW)); e.preventDefault(); return; }
+        if (draggedAnchor) { rawPull = c2w(u, v, viewW, viewH); e.preventDefault(); return; }
+        const splitX = viewW * splitRatio;
+        let bestK = null, bestD = 24;
+        ANCHOR_KEYS.forEach(k => {
+          if (!lastP[k]) return;
+          const d = Math.hypot(u - lastP[k].u, v - lastP[k].v);
+          if (d < bestD) { bestD = d; bestK = k; }
+        });
+        hoveredAnchor = bestK;
+        cv.style.cursor = bestK ? 'grab' : (Math.abs(u - splitX) < 18 ? 'ew-resize' : 'default');
+      }
+      function onUp() { draggingSplit = false; draggedAnchor = null; rawPull = null; cv.style.cursor = 'default'; }
+      cv.addEventListener('mousedown', onDown); window.addEventListener('mousemove', onMove); window.addEventListener('mouseup', onUp);
+      cv.addEventListener('touchstart', onDown, { passive: false }); window.addEventListener('touchmove', onMove, { passive: false }); window.addEventListener('touchend', onUp);
+
+      function drawSide(J, P, mp, isXray, activeKey, clampInfo, W, H) {
+        if (isXray) {
+          const bg = ctx.createRadialGradient(W * 0.50, H * 0.52, 20, W * 0.50, H * 0.52, W * 0.45);
+          bg.addColorStop(0, 'rgba(245, 158, 11, 0.16)'); bg.addColorStop(0.45, 'rgba(52, 211, 153, 0.06)'); bg.addColorStop(1, '#07080B');
+          ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+          ctx.strokeStyle = 'rgba(245, 158, 11, 0.05)'; ctx.lineWidth = 1;
+          for (let gx = 0; gx < W; gx += 32) { ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, H); ctx.stroke(); }
+          for (let gy = 0; gy < H; gy += 32) { ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(W, gy); ctx.stroke(); }
+        } else {
+          const bg = ctx.createLinearGradient(0, 0, 0, H);
+          bg.addColorStop(0, '#090C12'); bg.addColorStop(0.82, '#0D121C'); bg.addColorStop(1, '#07090E');
+          ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+        }
+        const gY = H * 0.87;
+        ctx.strokeStyle = isXray ? 'rgba(245, 158, 11, 0.28)' : 'rgba(255, 255, 255, 0.14)'; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(0, gY); ctx.lineTo(W, gY); ctx.stroke();
+
+        if (isXray) {
+          const barY = 24;
+          ctx.strokeStyle = 'rgba(245, 158, 11, 0.55)'; ctx.lineWidth = 2.5;
+          ctx.beginPath(); ctx.moveTo(W * 0.26, barY); ctx.lineTo(W * 0.74, barY); ctx.stroke();
+          ANCHOR_KEYS.forEach((ak, idx) => {
+            const bp = P[ak], topU = W * 0.30 + (idx / (ANCHOR_KEYS.length - 1)) * (W * 0.40);
+            const isAct = (ak === activeKey), col = isAct ? (isDualZero ? '52,211,153' : '244,63,94') : '245,158,11';
+            ctx.strokeStyle = `rgba(${col}, ${isAct ? 0.96 : 0.62})`; ctx.lineWidth = isAct ? 2.2 : 1.15;
+            ctx.setLineDash(isAct ? [] : [4, 3]); ctx.beginPath(); ctx.moveTo(topU, barY); ctx.lineTo(bp.u, bp.v); ctx.stroke();
+          });
+          ctx.setLineDash([]);
+          [['lfoot','lknee',7],['lknee','lh',8],['rfoot','rknee',7],['rknee','rh',8],['lh','pelvis',7],['rh','pelvis',7],['pelvis','torso',12],['torso','neck',11],['lsh','rsh',9],['lsh','lelb',7],['lelb','lhand',6],['rsh','relb',7],['relb','rhand',6]].forEach(([a, b, w]) => {
+            ctx.strokeStyle = 'rgba(245, 158, 11, 0.34)'; ctx.lineCap = 'round'; ctx.lineWidth = w + 5;
+            ctx.beginPath(); ctx.moveTo(P[a].u, P[a].v); ctx.lineTo(P[b].u, P[b].v); ctx.stroke();
+            ctx.strokeStyle = '#FDE68A'; ctx.lineWidth = 2.3;
+            ctx.beginPath(); ctx.moveTo(P[a].u, P[a].v); ctx.lineTo(P[b].u, P[b].v); ctx.stroke();
+          });
+          ctx.fillStyle = 'rgba(245, 158, 11, 0.24)'; ctx.strokeStyle = '#FDE68A'; ctx.lineWidth = 2;
+          ctx.beginPath(); ctx.arc(P.head.u, P.head.v, 13 * Math.sqrt(mp.h), 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        } else {
+          [['lfoot','lknee',9],['lknee','lh',11],['rfoot','rknee',9],['rknee','rh',11],['lsh','lelb',9],['lelb','lhand',7.5],['rsh','relb',9],['relb','rhand',7.5]].forEach(([a, b, w]) => {
+            ctx.strokeStyle = '#1E293B'; ctx.lineCap = 'round'; ctx.lineWidth = w + 3;
+            ctx.beginPath(); ctx.moveTo(P[a].u, P[a].v); ctx.lineTo(P[b].u, P[b].v); ctx.stroke();
+            ctx.strokeStyle = mp.armor; ctx.lineWidth = w;
+            ctx.beginPath(); ctx.moveTo(P[a].u, P[a].v); ctx.lineTo(P[b].u, P[b].v); ctx.stroke();
+          });
+          ctx.fillStyle = mp.armor; ctx.strokeStyle = '#475569'; ctx.lineWidth = 1.6;
+          ctx.beginPath(); ctx.moveTo(P.lsh.u - 4, P.lsh.v - 3); ctx.lineTo(P.rsh.u + 4, P.rsh.v - 3); ctx.lineTo(P.rh.u + 2, P.pelvis.v + 4); ctx.lineTo(P.lh.u - 2, P.pelvis.v + 4); ctx.closePath(); ctx.fill(); ctx.stroke();
+          const hr = 13 * Math.sqrt(mp.h);
+          ctx.fillStyle = mp.armor; ctx.beginPath(); ctx.arc(P.head.u, P.head.v, hr, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+          ctx.fillStyle = mp.visor; ctx.beginPath(); ctx.roundRect(P.head.u - hr * 0.72, P.head.v - hr * 0.28, hr * 1.44, hr * 0.56, 4); ctx.fill();
+        }
+      }
+
+      function render() {
+        syncCanvasSize();
+        tClock += 0.022;
+        const W = viewW, H = viewH, mp = MORPHS[curMorph];
+        leanV += pushVel * 0.16; pushVel *= 0.74;
+        if (isDualZero) { leanV = (leanV - 0.10 * lean) * 0.78; lean += leanV; }
+        else { chatterPhase += 0.68; leanV = (leanV - 0.055 * lean) * 0.962 + 0.015 * Math.sin(chatterPhase); lean += leanV; }
+        pushFlash = Math.max(0, pushFlash - 0.035);
+        const jitter = isDualZero ? 0 : Math.sin(chatterPhase * 1.7) * 0.038 * (0.4 + Math.abs(lean) * 3);
+
+        const HL = 0.78 * mp.h, HT = 0.56 * mp.h, WS = 0.25 * mp.w, WH = 0.135 * mp.w;
+        let pelX = lean * 0.42, pelZ = HL - Math.abs(lean) * 0.07, torsoTilt = 0;
+        let lhTgt = [-WS * 1.65, pelZ + HT * 0.35], rhTgt = [WS * 1.65, pelZ + HT * 0.35];
+        let lfTgt = [-WH * 1.15, 0.0], rfTgt = [WH * 1.15, 0.0];
+
+        if (curMotion === 'salsa') {
+          const s = Math.sin(tClock * 4.4), c = Math.cos(tClock * 4.4);
+          pelX += s * 0.14; pelZ -= Math.abs(s) * 0.05; torsoTilt = -s * 0.08;
+          lhTgt = [-WS * 1.45 + s * 0.16, pelZ + HT * 0.65 + c * 0.14]; rhTgt = [WS * 1.45 + s * 0.16, pelZ + HT * 0.65 - c * 0.14];
+          lfTgt = [-WH * 1.25 + s * 0.08, Math.max(0, c * 0.09)]; rfTgt = [WH * 1.25 + s * 0.08, Math.max(0, -c * 0.09)];
+        } else if (curMotion === 'macarena') {
+          const hip = Math.sin(tClock * 4.8) * 0.08; pelX += hip; pelZ -= Math.abs(Math.sin(tClock * 4.8)) * 0.035; torsoTilt = -hip * 0.5;
+          const poses = [
+            [[-WS * 1.85, pelZ + HT * 0.78], [WS * 1.85, pelZ + HT * 0.78]],
+            [[-WS * 1.85, pelZ + HT * 0.90], [WS * 0.28, pelZ + HT * 0.90]],
+            [[-WS * 0.28, pelZ + HT * 0.90], [WS * 0.28, pelZ + HT * 0.90]],
+            [[-WS * 0.62, pelZ + HT + 0.14], [WS * 0.62, pelZ + HT + 0.14]],
+            [[-WH * 1.55, pelZ + 0.08], [WH * 1.55, pelZ + 0.08]],
+            [[-WH * 1.65, pelZ + 0.12], [WH * 1.65, pelZ + 0.12]]
+          ];
+          const ph = (tClock * 1.15) % poses.length, i0 = Math.floor(ph), i1 = (i0 + 1) % poses.length, a = 0.5 - 0.5 * Math.cos((ph - i0) * Math.PI);
+          lhTgt = [poses[i0][0][0]*(1-a)+poses[i1][0][0]*a, poses[i0][0][1]*(1-a)+poses[i1][0][1]*a];
+          rhTgt = [poses[i0][1][0]*(1-a)+poses[i1][1][0]*a, poses[i0][1][1]*(1-a)+poses[i1][1][1]*a];
+        } else if (curMotion === 'squat') {
+          const sq = 0.5 - 0.5 * Math.cos(tClock * 2.4); pelZ -= sq * 0.24 * mp.h;
+          lhTgt = [-WS * 1.35, pelZ + HT * (0.45 + sq * 0.85)]; rhTgt = [WS * 1.35, pelZ + HT * (0.45 + sq * 0.85)];
+        } else {
+          pelZ += Math.sin(tClock * 1.8) * 0.012; lhTgt[1] += Math.sin(tClock * 2.1) * 0.03; rhTgt[1] += Math.cos(tClock * 2.1) * 0.03;
+        }
+
+        let clampInfo = { clamped: false, ratio: 0, rawPt: null };
+        if (draggedAnchor && rawPull) {
+          if (draggedAnchor === 'lhand') { lhTgt = [rawPull.x, rawPull.z]; pelX += Math.max(-0.14, Math.min(0.14, (rawPull.x + WS) * 0.18)); }
+          else if (draggedAnchor === 'rhand') { rhTgt = [rawPull.x, rawPull.z]; pelX += Math.max(-0.14, Math.min(0.14, (rawPull.x - WS) * 0.18)); }
+          else if (draggedAnchor === 'pelvis') { pelX = Math.max(-0.22, Math.min(0.22, rawPull.x)); pelZ = Math.max(HL * 0.58, Math.min(HL * 1.02, rawPull.z)); }
+          else if (draggedAnchor === 'head' || draggedAnchor === 'torso') { const tx = Math.max(-0.26, Math.min(0.26, rawPull.x)); pelX += tx * 0.55; torsoTilt = tx * 0.45; }
+          else if (draggedAnchor === 'lfoot' || draggedAnchor === 'lknee') { lfTgt = [Math.max(-0.45, Math.min(-0.04, rawPull.x)), Math.max(0, Math.min(0.32, rawPull.z))]; pelX += 0.10; }
+          else if (draggedAnchor === 'rfoot' || draggedAnchor === 'rknee') { rfTgt = [Math.max(0.04, Math.min(0.45, rawPull.x)), Math.max(0, Math.min(0.32, rawPull.z))]; pelX -= 0.10; }
+        }
+
+        const pelvis = [pelX, pelZ], lh = [pelX - WH, pelZ], rh = [pelX + WH, pelZ];
+        const torso = [pelX + torsoTilt * 0.65, pelZ + HT * 0.58], neck = [pelX + torsoTilt, pelZ + HT], head = [neck[0] + torsoTilt * 0.25, neck[1] + 0.19 * mp.h];
+        const lsh = [neck[0] - WS, neck[1] - 0.05 * mp.h], rsh = [neck[0] + WS, neck[1] - 0.05 * mp.h];
+        const L_arm = 0.28 * mp.h, L_leg = 0.41 * mp.h;
+        const laIK = solve2Bone(lsh, [lhTgt[0] + jitter, lhTgt[1]], L_arm, L_arm, -1);
+        const raIK = solve2Bone(rsh, [rhTgt[0] - jitter, rhTgt[1]], L_arm, L_arm,  1);
+        const llIK = solve2Bone(lh, [lfTgt[0] + jitter * 0.5, lfTgt[1]], L_leg, L_leg, -1);
+        const rlIK = solve2Bone(rh, [rfTgt[0] - jitter * 0.5, rfTgt[1]], L_leg, L_leg,  1);
+        if (draggedAnchor === 'lhand' && laIK.clamped) clampInfo = { clamped: true, ratio: Math.min(1, laIK.overDist / 0.45), rawPt: rawPull };
+        else if (draggedAnchor === 'rhand' && raIK.clamped) clampInfo = { clamped: true, ratio: Math.min(1, raIK.overDist / 0.45), rawPt: rawPull };
+
+        const J = { pelvis, lh, rh, torso, neck, head, lsh, rsh, lelb: laIK.mid, lhand: laIK.end, relb: raIK.mid, rhand: raIK.end, lknee: llIK.mid, lfoot: llIK.end, rknee: rlIK.mid, rfoot: rlIK.end };
+        const P = {}; Object.keys(J).forEach(k => P[k] = w2c(J[k][0], J[k][1], W, H));
+        lastP = P;
+
+        const splitX = W * splitRatio, activeKey = draggedAnchor || hoveredAnchor;
+        ctx.save(); ctx.beginPath(); ctx.rect(0, 0, splitX, H); ctx.clip(); drawSide(J, P, mp, false, activeKey, clampInfo, W, H); ctx.restore();
+        ctx.save(); ctx.beginPath(); ctx.rect(splitX, 0, W - splitX, H); ctx.clip(); drawSide(J, P, mp, true, activeKey, clampInfo, W, H); ctx.restore();
+
+        if (clampInfo.clamped && clampInfo.rawPt && draggedAnchor) {
+          const rp = w2c(clampInfo.rawPt.x, clampInfo.rawPt.z, W, H), ap = P[draggedAnchor];
+          ctx.strokeStyle = '#F43F5E'; ctx.lineWidth = 1.6; ctx.setLineDash([4, 3]);
+          ctx.beginPath(); ctx.moveTo(ap.u, ap.v); ctx.lineTo(rp.u, rp.v); ctx.stroke(); ctx.setLineDash([]);
+          ctx.beginPath(); ctx.arc(rp.u, rp.v, 6, 0, Math.PI * 2); ctx.stroke();
+        }
+
+        ANCHOR_KEYS.forEach(ak => {
+          const pt = P[ak], isAct = (ak === activeKey), col = isDualZero ? '#34D399' : '#F43F5E';
+          ctx.fillStyle = isAct ? 'rgba(52, 211, 153, 0.28)' : 'rgba(6, 7, 9, 0.65)';
+          ctx.strokeStyle = isAct ? '#FFFFFF' : col; ctx.lineWidth = isAct ? 2.2 : 1.6;
+          ctx.beginPath(); ctx.arc(pt.u, pt.v, isAct ? 11.5 : 7.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+          ctx.fillStyle = isAct ? '#34D399' : '#FFFFFF';
+          ctx.beginPath(); ctx.arc(pt.u, pt.v, isAct ? 4.2 : 2.8, 0, Math.PI * 2); ctx.fill();
+        });
+
+        // DLSS Split Curtain Line + Handle
+        ctx.strokeStyle = '#34D399'; ctx.lineWidth = 1.8;
+        ctx.beginPath(); ctx.moveTo(splitX, 0); ctx.lineTo(splitX, H); ctx.stroke();
+        ctx.fillStyle = '#0D1117'; ctx.strokeStyle = '#34D399'; ctx.lineWidth = 1.6;
+        ctx.beginPath(); ctx.roundRect(splitX - 18, H * 0.50 - 13, 36, 26, 13); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = '#34D399'; ctx.font = '700 11px "JetBrains Mono", monospace'; ctx.textAlign = 'center';
+        ctx.fillText('◀ ▶', splitX, H * 0.50 + 4); ctx.textAlign = 'left';
+
+        // Update 3-Net Dock (KinNet + Gram + Dynamic Impedance)
+        const clampPct = Math.round(clampInfo.ratio * 100);
+        document.getElementById('kinStatus').textContent = clampInfo.clamped ? 'CLAMPING!' : 'FEASIBLE';
+        document.getElementById('kinDriver').textContent = draggedAnchor ? ('PULLING ' + ANCHOR_NAMES[draggedAnchor]) : (curMotion === 'manual' ? '9-STRING MANUAL' : ('MOTION: ' + curMotion.toUpperCase()));
+        document.getElementById('barClamp').style.width = Math.max(4, clampPct) + '%';
+        document.getElementById('valClamp').textContent = clampPct + '%';
+
+        const dynAct = curMotion === 'salsa' ? 0.28 * Math.abs(Math.sin(tClock * 4.4)) : curMotion === 'macarena' ? 0.22 * (0.5 + 0.5 * Math.sin(tClock * 4.8)) : curMotion === 'squat' ? 0.34 * (0.5 - 0.5 * Math.cos(tClock * 2.4)) : 0;
+        const pullLoad = draggedAnchor ? (0.20 + clampInfo.ratio * 0.45) : 0;
+        const pushLoad = Math.min(0.85, Math.abs(lean) * 2.2 + Math.abs(leanV) * 5.5);
+        const kDisp = isDualZero ? mp.kScale * (0.88 + dynAct + pullLoad + pushLoad * 0.65) : 1.0;
+        const dDisp = isDualZero ? mp.dScale * (0.85 + dynAct * 0.8 + pullLoad * 0.7 + pushLoad * 1.15) : 1.0;
+        document.getElementById('barK').style.width = Math.min(100, kDisp * 46) + '%'; document.getElementById('valK').textContent = kDisp.toFixed(2) + '×';
+        document.getElementById('barD').style.width = Math.min(100, dDisp * 46) + '%'; document.getElementById('valD').textContent = dDisp.toFixed(2) + '×';
+
+        // Gram heatmap with LA/RA/TR/PL/LL/RL axis ticks & energy
+        const gw = gcv.width, pad = 16, cell = (gw - pad) / 6;
+        const gLbls = ['LA', 'RA', 'TR', 'PL', 'LL', 'RL'];
+        gctx.clearRect(0, 0, gw, gw);
+        gctx.fillStyle = '#8D96A5'; gctx.font = '600 7.5px "JetBrains Mono", monospace'; gctx.textAlign = 'center';
+        for (let i = 0; i < 6; i++) {
+          gctx.fillText(gLbls[i], pad + (i + 0.5) * cell, 10);
+          gctx.fillText(gLbls[i], 8, pad + (i + 0.72) * cell);
+        }
+        const baseG = [[1,.15,.72,.35,.25,.18],[.15,1,.72,.35,.18,.25],[.72,.72,1,.85,.58,.58],[.35,.35,.85,1,.88,.88],[.25,.18,.58,.88,1,.45],[.18,.25,.58,.88,.45,1]];
+        for (let i = 0; i < 6; i++) for (let j = 0; j < 6; j++) {
+          const v = Math.min(1, baseG[i][j] * (0.45 + 0.55 * (dynAct + pullLoad + pushLoad * 0.6)));
+          gctx.fillStyle = isDualZero ? `rgba(52,211,153,${0.08 + v * 0.86})` : `rgba(244,63,94,${0.08 + v * 0.75})`;
+          gctx.fillRect(pad + j * cell + 1, pad + i * cell + 1, cell - 2, cell - 2);
+        }
+        energyHist.push(Math.min(1, Math.abs(lean) * 1.9 + Math.abs(leanV) * 4.5 + clampInfo.ratio * 0.35 + (isDualZero ? 0.04 : 0.24 + Math.abs(jitter) * 5)));
+        energyHist.shift();
+        ectx.clearRect(0, 0, ecv.width, ecv.height); ectx.strokeStyle = isDualZero ? '#34D399' : '#F43F5E'; ectx.lineWidth = 1.5; ectx.beginPath();
+        energyHist.forEach((ev, idx) => { const px = 4 + (idx / (energyHist.length - 1)) * (ecv.width - 8), py = ecv.height - 3 - ev * (ecv.height - 6); if (idx === 0) ectx.moveTo(px, py); else ectx.lineTo(px, py); });
+        ectx.stroke();
+
+        requestAnimationFrame(render);
+      }
+      render();
+    })();
+
+    // =========================================================================
+    // 2. VIDEO GALLERY CONTROLLER (SLATE & GALLERY LIGHTING)
+    // =========================================================================
+    let curLighting = 'slate', curVidIdx = 0;
+    const VID_MAP = {
+      slate: [
+        ['./viz/dualzero_cinema_showcase/dualzero_slate_family16_dance_latino_salsa_step_180_R_002__A322.mp4', './viz/dualzero_cinema_showcase/dualzero_slate_family16_dance_latino_salsa_step_180_R_002__A322_cover.png'],
+        ['./viz/dualzero_cinema_showcase/dualzero_slate_family16_macarena_001__A545.mp4', './viz/dualzero_cinema_showcase/dualzero_slate_family16_macarena_001__A545_cover.png'],
+        ['./viz/dualzero_cinema_showcase/dualzero_slate_zeroshot4_dance2.mp4', './viz/dualzero_cinema_showcase/dualzero_slate_zeroshot4_dance2_cover.png'],
+        ['./viz/dualzero_cinema_showcase/dualzero_slate_closeup3_dance1.mp4', './viz/dualzero_cinema_showcase/dualzero_slate_closeup3_dance1_cover.png'],
+        ['./viz/dualzero_cinema_showcase/dualzero_slate_solo_g1_dance2.mp4', './viz/dualzero_cinema_showcase/dualzero_slate_solo_g1_dance2_cover.png']
+      ],
+      gallery: [
+        ['./viz/dualzero_cinema_showcase/dualzero_gallery_family16_dance_latino_salsa_step_180_R_002__A322.mp4', './viz/dualzero_cinema_showcase/dualzero_gallery_family16_dance_latino_salsa_step_180_R_002__A322_cover.png'],
+        ['./viz/dualzero_cinema_showcase/dualzero_gallery_family16_macarena_001__A545.mp4', './viz/dualzero_cinema_showcase/dualzero_gallery_family16_macarena_001__A545_cover.png'],
+        ['./viz/dualzero_cinema_showcase/dualzero_gallery_zeroshot4_dance2.mp4', './viz/dualzero_cinema_showcase/dualzero_gallery_zeroshot4_dance2_cover.png'],
+        ['./viz/dualzero_cinema_showcase/dualzero_gallery_closeup3_dance1.mp4', './viz/dualzero_cinema_showcase/dualzero_gallery_closeup3_dance1_cover.png'],
+        ['./viz/dualzero_cinema_showcase/dualzero_slate_solo_g1_dance2.mp4', './viz/dualzero_cinema_showcase/dualzero_slate_solo_g1_dance2_cover.png']
+      ]
+    };
+    function applyVid() {
+      const [mp4, poster] = VID_MAP[curLighting][curVidIdx];
+      const v = document.getElementById('stageVideo');
+      v.poster = poster; v.src = mp4; v.play();
+    }
+    function selectVideo(idx, btn) {
+      curVidIdx = idx;
+      document.querySelectorAll('.vtab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      applyVid();
+    }
+    function setLighting(lit) {
+      curLighting = lit;
+      document.getElementById('litSlate').classList.toggle('active', lit === 'slate');
+      document.getElementById('litGallery').classList.toggle('active', lit === 'gallery');
+      applyVid();
+    }
+
+    // =========================================================================
+    // 3. COMPLETE 36-HUMANOID ZERO-SHOT BENCHMARK DATASET (VERIFIED latest_36.json)
+    // =========================================================================
+    // Note: Actual nog1 training set (Basis-6) = {engineai_pm01, seen_a3, seen_h2, booster_t1, atom01, rp1_24dof}. Unitree G1 is 100% Zero-Shot!
+    const ROBOTS_36 = [
+      { id:"MagicBot Z1", train:false, height:140, mass:39.3, dof:23, seed:98.5, lafan:60.0, comp:72.08 },
+      { id:"RP1", train:true, height:135, mass:39.1, dof:24, seed:98.0, lafan:71.7, comp:79.08 },
+      { id:"Noetix E1", train:false, height:136, mass:41.6, dof:24, seed:98.0, lafan:63.3, comp:75.05 },
+      { id:"Noetix Bumi", train:false, height:94, mass:17.3, dof:21, seed:98.0, lafan:60.0, comp:72.88 },
+      { id:"AgiBot X2", train:false, height:131, mass:41.2, dof:29, seed:97.5, lafan:68.3, comp:77.64 },
+      { id:"EngineAI PM01", train:true, height:138, mass:40.9, dof:24, seed:97.5, lafan:65.0, comp:76.73 },
+      { id:"AgiBot A3", train:true, height:169, mass:58.0, dof:31, seed:97.5, lafan:65.0, comp:75.49 },
+      { id:"Unitree H2", train:true, height:180, mass:71.3, dof:31, seed:97.5, lafan:60.0, comp:74.01 },
+      { id:"Unitree G1", train:false, height:130, mass:33.7, dof:29, seed:97.0, lafan:66.7, comp:78.55 },
+      { id:"Unitree H1-2", train:false, height:178, mass:67.0, dof:27, seed:96.0, lafan:56.7, comp:73.01 },
+      { id:"MagicBot Gen1", train:false, height:174, mass:66.5, dof:30, seed:96.0, lafan:53.3, comp:72.39 },
+      { id:"Unitree R1", train:false, height:121, mass:28.9, dof:24, seed:96.0, lafan:51.7, comp:70.69 },
+      { id:"Atom01", train:true, height:125, mass:33.8, dof:23, seed:95.5, lafan:48.3, comp:63.22 },
+      { id:"Fourier GR-3", train:false, height:165, mass:69.7, dof:31, seed:95.5, lafan:40.0, comp:63.13 },
+      { id:"Noetix N2", train:false, height:120, mass:33.2, dof:18, seed:95.0, lafan:48.3, comp:65.49 },
+      { id:"PND Adam Lite", train:false, height:167, mass:58.2, dof:25, seed:93.0, lafan:36.7, comp:60.18 },
+      { id:"Fourier N1", train:false, height:130, mass:39.7, dof:23, seed:92.5, lafan:43.3, comp:65.92 },
+      { id:"Fourier GR-2", train:false, height:175, mass:63.0, dof:29, seed:92.5, lafan:41.7, comp:63.57 },
+      { id:"Booster K1", train:false, height:95, mass:19.7, dof:22, seed:92.0, lafan:41.7, comp:64.92 },
+      { id:"Kuavo S54", train:false, height:170, mass:67.4, dof:29, seed:91.5, lafan:33.3, comp:56.70 },
+      { id:"Booster T1", train:true, height:120, mass:31.6, dof:23, seed:90.0, lafan:48.3, comp:65.87 },
+      { id:"Fourier GR-1 T2", train:false, height:165, mass:54.5, dof:32, seed:89.0, lafan:21.7, comp:49.46 },
+      { id:"Unitree H1", train:false, height:180, mass:51.4, dof:19, seed:86.5, lafan:23.3, comp:51.72 },
+      { id:"Kuavo S45", train:false, height:147, mass:51.7, dof:28, seed:85.5, lafan:8.3, comp:34.93 },
+      { id:"Fourier GR-1 T1", train:false, height:165, mass:52.8, dof:32, seed:76.0, lafan:5.0, comp:33.71 },
+      { id:"OpenLoong", train:false, height:185, mass:86.1, dof:31, seed:75.0, lafan:11.7, comp:27.90 },
+      { id:"Booster T2", train:false, height:145, mass:42.0, dof:31, seed:72.0, lafan:1.7, comp:24.59 },
+      { id:"IIT ergoCub", train:false, height:150, mass:52.3, dof:34, seed:57.5, lafan:0.0, comp:19.71 },
+      { id:"HighTorque Hi", train:false, height:100, mass:18.3, dof:25, seed:54.0, lafan:1.7, comp:21.98 },
+      { id:"DeepRobotics DR02 Std", train:false, height:175, mass:67.6, dof:21, seed:35.5, lafan:0.0, comp:13.07 },
+      { id:"IHMC Alex", train:false, height:175, mass:90.6, dof:29, seed:14.5, lafan:0.0, comp:4.52 },
+      { id:"Apptronik Apollo", train:false, height:173, mass:80.9, dof:32, seed:12.0, lafan:0.0, comp:7.51 },
+      { id:"DeepRobotics DR02 Pro", train:false, height:175, mass:78.1, dof:31, seed:4.5, lafan:0.0, comp:4.74 }
+    ];
+
+    // Complete 36-robot matched-budget baseline lookup: [URMA, Amorpheus, BodyTransformer]
+    const INLINE_BASE = {
+      "MagicBot Z1":           { seed: [76.5, 61.5, 69.5], lafan: [15.0,  3.3,  5.0] },
+      "RP1":                   { seed: [91.0, 91.5, 92.0], lafan: [50.0, 35.0, 45.0] },
+      "Noetix E1":             { seed: [63.0, 51.0, 19.5], lafan: [ 0.0,  0.0,  0.0] },
+      "Noetix Bumi":           { seed: [91.0, 73.5, 82.0], lafan: [33.3,  0.0, 10.0] },
+      "AgiBot X2":             { seed: [81.0, 20.0, 39.5], lafan: [20.0,  0.0,  0.0] },
+      "EngineAI PM01":         { seed: [94.0, 94.5, 90.0], lafan: [55.0, 43.3, 33.3] },
+      "AgiBot A3":             { seed: [92.5, 81.5, 86.0], lafan: [51.7, 21.7, 20.0] },
+      "Unitree H2":            { seed: [90.0,  0.0,  0.0], lafan: [46.7,  0.0,  0.0] },
+      "Unitree G1":            { seed: [91.0, 85.5, 87.0], lafan: [51.7, 23.3, 35.0] },
+      "Unitree H1-2":          { seed: [73.0, 55.5, 20.5], lafan: [ 5.0,  3.3,  0.0] },
+      "MagicBot Gen1":         { seed: [75.0, 25.0, 25.5], lafan: [18.3,  0.0,  0.0] },
+      "Unitree R1":            { seed: [72.5, 77.5, 71.0], lafan: [10.0,  8.3,  6.7] },
+      "Atom01":                { seed: [87.5, 82.0, 80.5], lafan: [41.7, 18.3, 15.0] },
+      "Fourier GR-3":          { seed: [90.0,  0.0,  3.5], lafan: [38.3,  0.0,  0.0] },
+      "Noetix N2":             { seed: [37.0, 12.5,  0.0], lafan: [ 0.0,  0.0,  0.0] },
+      "PND Adam Lite":         { seed: [81.5,  2.5, 11.5], lafan: [20.0,  0.0,  0.0] },
+      "Fourier N1":            { seed: [58.5, 50.5, 45.0], lafan: [ 0.0,  0.0,  0.0] },
+      "Fourier GR-2":          { seed: [85.0, 24.0, 24.0], lafan: [36.7,  0.0,  0.0] },
+      "Booster K1":            { seed: [87.5, 70.5, 70.5], lafan: [28.3, 11.7,  8.3] },
+      "Kuavo S54":             { seed: [41.0, 41.0, 31.5], lafan: [ 0.0,  0.0,  0.0] },
+      "Booster T1":            { seed: [87.5, 80.5, 80.5], lafan: [35.0, 10.0, 10.0] },
+      "Fourier GR-1 T2":       { seed: [78.0,  4.0, 10.5], lafan: [ 6.7,  0.0,  0.0] },
+      "Unitree H1":            { seed: [14.0, 11.0,  1.0], lafan: [ 0.0,  0.0,  0.0] },
+      "Kuavo S45":             { seed: [49.5, 25.0,  6.0], lafan: [ 1.7,  0.0,  0.0] },
+      "Fourier GR-1 T1":       { seed: [61.0,  2.0,  9.0], lafan: [ 1.7,  0.0,  0.0] },
+      "OpenLoong":             { seed: [ 0.0,  7.5,  0.5], lafan: [ 0.0,  0.0,  0.0] },
+      "Booster T2":            { seed: [ 0.0,  0.0,  0.0], lafan: [ 0.0,  0.0,  0.0] },
+      "IIT ergoCub":           { seed: [ 0.0, 16.5,  8.5], lafan: [ 0.0,  0.0,  0.0] },
+      "HighTorque Hi":         { seed: [39.5, 40.0, 48.0], lafan: [ 1.7,  0.0,  0.0] },
+      "DeepRobotics DR02 Std": { seed: [ 2.5,  2.0,  2.5], lafan: [ 0.0,  0.0,  0.0] },
+      "IHMC Alex":             { seed: [ 1.5,  0.5,  0.0], lafan: [ 0.0,  0.0,  0.0] },
+      "Apptronik Apollo":      { seed: [ 0.0,  0.0,  2.5], lafan: [ 0.0,  0.0,  0.0] },
+      "DeepRobotics DR02 Pro": { seed: [ 0.0,  0.0,  0.0], lafan: [ 0.0,  0.0,  0.0] }
+    };
+
+    let bFilter = 'all', bSort = 'seed', bDir = -1, showInlineBase = true, benchExpanded = false;
+    function toggleBenchExpand() {
+      benchExpanded = !benchExpanded;
+      renderBench();
+    }
+    function toggleInlineBaselines() {
+      showInlineBase = !showInlineBase;
+      const btn = document.getElementById('btnToggleBase');
+      btn.textContent = showInlineBase ? 'Baselines: ON' : 'Baselines: OFF';
+      btn.className = showInlineBase ? 'chip sig-active' : 'chip';
+      document.getElementById('inlineBaseLegend').style.display = showInlineBase ? 'flex' : 'none';
+      renderBench();
+    }
+    function renderBench() {
+      let rows = ROBOTS_36.slice();
+      if (bFilter === 'zs') rows = rows.filter(r => !r.train);
+      if (bFilter === 'train') rows = rows.filter(r => r.train);
+      if (bFilter === 'light') rows = rows.filter(r => r.mass < 35);
+      if (bFilter === 'heavy') rows = rows.filter(r => r.mass > 60);
+
+      rows.sort((a, b) => {
+        const diff = (a[bSort] - b[bSort]) * bDir;
+        if (diff !== 0) return diff;
+        if (bSort === 'seed') return b.lafan - a.lafan;
+        return b.seed - a.seed;
+      });
+      const totalCount = rows.length;
+      const shownRows = (benchExpanded || totalCount <= 5) ? rows : rows.slice(0, 5);
+      const expBtn = document.getElementById('benchExpandBtn');
+      if (expBtn) {
+        if (totalCount <= 5) {
+          expBtn.style.display = 'none';
+        } else {
+          expBtn.style.display = 'flex';
+          expBtn.textContent = benchExpanded
+            ? `COLLAPSE TO TOP 5 ↑`
+            : `SHOW ALL ${totalCount} ROBOTS (+${totalCount - 5} MORE) ↓`;
+        }
+      }
+      const bCols = ['#94A3B8', '#F59E0B', '#64748B'];
+      const bNames = ['URMA', 'Amor', 'BodyT'];
+      const makeSubBars = (arr) => arr.map((v, i) => `
+        <div class="pr-bar-line" title="${bNames[i]}: ${v.toFixed(1)}%">
+          <div class="pr-track" style="height:3.5px;"><div style="height:100%; width:${Math.max(v, 0.8)}%; background:${bCols[i]}; opacity:0.82;"></div></div>
+          <div class="pr-val" style="width:46px; font-size:9.5px; color:var(--ink-dim);">${v.toFixed(1)}%</div>
+        </div>
+      `).join('');
+
+      document.getElementById('benchMount').innerHTML = shownRows.map(r => {
+        const badge = r.bug ? `<span class="tag-bug">ASSET*</span>` : (r.train ? `<span class="tag-tr">TRAIN</span>` : `<span class="tag-zs">UNSEEN</span>`);
+        const seedCol = r.bug ? '#F43F5E' : '#34D399';
+        const lafanCol = r.bug ? '#F43F5E' : '#60A5FA';
+        const base = showInlineBase ? INLINE_BASE[r.id] : null;
+        return `
+          <div class="r-row" style="${base ? 'align-items:start; padding-top:11px; padding-bottom:11px;' : ''}">
+            <div style="font-weight:600; color:${r.bug?'#8D96A5':'#F5F7FA'}; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+              ${r.id}${badge}
+              ${base ? `<div class="mono" style="font-size:9px; color:var(--ink-dim); margin-top:4px;">vs URMA · Amorpheus · BodyT</div>` : ''}
+            </div>
+            <div class="mono" style="font-size:11.5px; color:${bSort==='height'?'var(--signal)':'var(--ink-sec)'};">${r.height} cm</div>
+            <div class="mono" style="font-size:11.5px; color:${bSort==='mass'?'var(--signal)':'var(--ink-dim)'};">${r.mass.toFixed(1)} kg · ${r.dof}D</div>
+            <div>
+              <div class="bar-cell">
+                <div class="bar-bg"><div class="bar-fill" style="width:${r.seed}%; background:${seedCol};"></div></div>
+                <div class="bar-num" style="color:${r.bug?'var(--warn)':(bSort==='seed'?'var(--signal)':'var(--ink)')}; font-weight:${base?700:400};">${r.seed.toFixed(1)}%</div>
+              </div>
+              ${base ? `<div class="pr-bars" style="margin-top:4px;">${makeSubBars(base.seed)}</div>` : ''}
+            </div>
+            <div>
+              <div class="bar-cell">
+                <div class="bar-bg"><div class="bar-fill" style="width:${r.lafan}%; background:${lafanCol};"></div></div>
+                <div class="bar-num" style="color:${r.bug?'var(--warn)':(bSort==='lafan'?'#60A5FA':'var(--ink-sec)')}; font-weight:${base?700:400};">${r.lafan.toFixed(1)}%</div>
+              </div>
+              ${base ? `<div class="pr-bars" style="margin-top:4px;">${makeSubBars(base.lafan)}</div>` : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+    function setFilter(f, btn) {
+      bFilter = f;
+      document.querySelectorAll('#benchFilters .chip').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      if (f === 'base11' && !showInlineBase) toggleInlineBaselines();
+      renderBench();
+    }
+    const SORT_META = {
+      seed:   { btn:'sSeed',   th:'thSeed',   bLbl:'Balance',     tLbl:'BALANCE STABILITY' },
+      lafan:  { btn:'sLafan',  th:'thLafan',  bLbl:'Motion',      tLbl:'DYNAMIC MOTION' },
+      height: { btn:'sHeight', th:'thHeight', bLbl:'Height (cm)', tLbl:'HEIGHT' },
+      mass:   { btn:'sMass',   th:'thMass',   bLbl:'Mass (kg)',   tLbl:'MASS · DOF' }
+    };
+    function setSort(s) {
+      if (bSort === s) { bDir = -bDir; } else { bSort = s; bDir = -1; }
+      const arr = bDir === -1 ? ' ↓' : ' ↑';
+      Object.entries(SORT_META).forEach(([k, m]) => {
+        const isAct = (k === bSort);
+        const btn = document.getElementById(m.btn);
+        const th = document.getElementById(m.th);
+        btn.classList.toggle('active', isAct);
+        btn.textContent = m.bLbl + (isAct ? arr : '');
+        th.classList.toggle('active', isAct);
+        th.textContent = m.tLbl + (isAct ? arr : '');
+      });
+      renderBench();
+    }
+    renderBench();
+
+    // =========================================================================
+    // 4. ABLATION TABS & BIBTEX COPY
+    // =========================================================================
+    // =========================================================================
+    // 5. THREE INTERACTIVE BARRIER MICRO-LABS (SECTION 03 - LIVE ANIMATED)
+    // =========================================================================
+    let b1UseKin = false, b2UseDual = true, bAnimClock = 0;
+
+    function setB1Mode(useKin) {
+      b1UseKin = useKin;
+      document.getElementById('b1Naive').className = !useKin ? 'chip warn-active' : 'chip';
+      document.getElementById('b1Kin').className = useKin ? 'chip active' : 'chip';
+      drawB1();
+    }
+    function drawB1() {
+      const c = document.getElementById('b1Canvas'), g = c.getContext('2d');
+      const W = c.width, H = c.height;
+      const pullPct = Number(document.getElementById('b1Pull').value);
+      document.getElementById('b1Val').textContent = pullPct + '%';
+      g.clearRect(0, 0, W, H);
+
+      const gY = 126, baseX = 104, reachR = 62;
+      // Ground & labeled Foot Support Polygon
+      g.strokeStyle = 'rgba(255,255,255,0.18)'; g.lineWidth = 1;
+      g.beginPath(); g.moveTo(12, gY); g.lineTo(W - 12, gY); g.stroke();
+      g.strokeStyle = 'rgba(52,211,153,0.55)'; g.lineWidth = 3.5;
+      g.beginPath(); g.moveTo(baseX - 22, gY); g.lineTo(baseX + 22, gY); g.stroke();
+      g.fillStyle = 'rgba(148,163,184,0.75)'; g.font = '500 8px "JetBrains Mono", monospace';
+      g.fillText('FOOT SUPPORT', baseX - 28, gY + 13);
+
+      // Feasible workspace dome
+      g.strokeStyle = b1UseKin ? 'rgba(52,211,153,0.65)' : 'rgba(255,255,255,0.15)';
+      g.fillStyle = b1UseKin ? 'rgba(52,211,153,0.07)' : 'rgba(255,255,255,0.02)';
+      g.setLineDash([4, 3]); g.lineWidth = 1.3;
+      g.beginPath(); g.arc(baseX, 66, reachR, 0, Math.PI * 2); g.fill(); g.stroke();
+      g.setLineDash([]);
+
+      const over = Math.max(0, (pullPct - 100) / 100);
+      const rawX = baseX + (pullPct / 100) * reachR * 1.28;
+      const rawY = 58 - over * 14;
+      const clamped = pullPct > 100;
+
+      // Whole-body kinematics:
+      // - Naive: whole body gets dragged forward past toe edge -> CoM falls out!
+      // - KinNet: whole-body coordination! Pelvis counter-shifts BACK, knees bend, torso leans forward,
+      //           back arm counter-balances -> extends reach while keeping combined CoM inside foot support!
+      const wobble = (!b1UseKin && clamped) ? Math.sin(bAnimClock * 6) * over * 0.08 : 0;
+      const hipX = b1UseKin ? (baseX - Math.min(14, over * 22)) : (baseX + over * 28 + wobble * 16);
+      const hipY = b1UseKin ? (94 + Math.min(8, over * 12))     : (94 + over * 4);
+      const kneeFx = (baseX + 12 + hipX) * 0.5 + (b1UseKin ? 7 : 4);
+      const kneeFy = (gY + hipY) * 0.5;
+      const kneeBx = (baseX - 14 + hipX) * 0.5 + (b1UseKin ? 5 : 2);
+      const kneeBy = (gY + hipY) * 0.5;
+      const shX = b1UseKin ? (baseX + Math.min(20, over * 34)) : (baseX + over * 52 + wobble * 26);
+      const shY = b1UseKin ? (64 + Math.min(6, over * 10))     : (66 + over * 10);
+      const headX = shX + (b1UseKin ? 5 : 10), headY = shY - 12;
+
+      // Combined whole-body CoM (weighted average of pelvis + torso + arms)
+      const comX = b1UseKin ? (hipX * 0.58 + shX * 0.42) : (hipX * 0.45 + shX * 0.55);
+
+      const armMax = reachR * 0.94;
+      const dxH = rawX - shX, dyH = rawY - shY;
+      const distH = Math.hypot(dxH, dyH);
+      const effReach = Math.min(distH, armMax);
+      const handX = shX + (dxH / Math.max(distH, 1e-4)) * effReach;
+      const handY = shY + (dyH / Math.max(distH, 1e-4)) * effReach;
+
+      // Back counter-balance arm (extends backward in KinNet mode!)
+      const bArmX = b1UseKin ? (shX - 18 - over * 28) : (shX - 8);
+      const bArmY = b1UseKin ? (shY + 14 - over * 6)  : (shY + 22);
+
+      // Draw articulated whole-body skeleton (2-segment legs + torso + both arms)
+      g.strokeStyle = '#64748B'; g.lineWidth = 2.4; g.lineCap = 'round';
+      g.beginPath(); g.moveTo(shX, shY + 2); g.lineTo(bArmX, bArmY); g.stroke(); // back counter-balance arm
+      g.strokeStyle = '#94A3B8'; g.lineWidth = 3;
+      g.beginPath(); g.moveTo(baseX - 14, gY); g.lineTo(kneeBx, kneeBy); g.lineTo(hipX, hipY); g.stroke();
+      g.beginPath(); g.moveTo(baseX + 14, gY); g.lineTo(kneeFx, kneeFy); g.lineTo(hipX, hipY); g.stroke();
+      g.strokeStyle = '#F5F7FA'; g.lineWidth = 3.8;
+      g.beginPath(); g.moveTo(hipX, hipY); g.lineTo(shX, shY); g.stroke();
+      g.fillStyle = '#F5F7FA'; g.beginPath(); g.arc(headX, headY, 7.0, 0, Math.PI * 2); g.fill();
+      g.strokeStyle = '#E2E8F0'; g.lineWidth = 2.8;
+      g.beginPath(); g.moveTo(shX, shY + 2); g.lineTo(handX, handY); g.stroke();
+
+      // Raw target x_ref
+      const needProj = distH > armMax;
+      g.strokeStyle = needProj ? '#F43F5E' : '#34D399'; g.lineWidth = 1.8;
+      g.beginPath(); g.arc(rawX, rawY, 5.2, 0, Math.PI * 2); g.stroke();
+      g.fillStyle = needProj ? '#F43F5E' : '#34D399'; g.font = '600 8.5px "JetBrains Mono", monospace';
+      g.fillText('x_ref', Math.min(W - 34, rawX - 10), rawY - 9);
+
+      if (b1UseKin && needProj) {
+        g.strokeStyle = '#34D399'; g.lineWidth = 1.8; g.setLineDash([4, 2]);
+        g.beginPath(); g.moveTo(rawX - 6, rawY); g.lineTo(handX + 6, handY); g.stroke(); g.setLineDash([]);
+        const prog = (bAnimClock * 0.9) % 1.0;
+        const px = rawX + (handX - rawX) * prog, py = rawY + (handY - rawY) * prog;
+        g.fillStyle = '#34D399'; g.beginPath(); g.arc(px, py, 2.8, 0, Math.PI * 2); g.fill();
+        g.fillStyle = '#34D399'; g.beginPath(); g.arc(handX, handY, 5.2, 0, Math.PI * 2); g.fill();
+        g.strokeStyle = '#60A5FA'; g.lineWidth = 1.8;
+        g.beginPath(); g.moveTo(handX, handY); g.lineTo(handX - 5, handY - 22); g.stroke();
+        g.fillStyle = '#60A5FA'; g.fillText('q̇_kin', handX - 16, handY - 25);
+        g.fillStyle = '#34D399'; g.fillText('Whole-Body Proj', Math.min(W - 86, (rawX + handX) * 0.5 - 32), handY + 18);
+      } else if (needProj) {
+        g.strokeStyle = '#F43F5E'; g.lineWidth = 1.5; g.setLineDash([3, 2]);
+        g.beginPath(); g.moveTo(handX, handY); g.lineTo(rawX, rawY); g.stroke(); g.setLineDash([]);
+      }
+
+      // CoM plumb line & margin
+      const fell = !b1UseKin && comX > baseX + 22;
+      g.strokeStyle = fell ? '#F43F5E' : '#34D399'; g.setLineDash([2, 2]); g.lineWidth = 1.4;
+      g.beginPath(); g.moveTo(comX, 76); g.lineTo(comX, gY); g.stroke(); g.setLineDash([]);
+      g.fillStyle = fell ? '#F43F5E' : '#34D399'; g.beginPath(); g.arc(comX, gY, 3.8, 0, Math.PI * 2); g.fill();
+
+      g.font = '600 9.5px "JetBrains Mono", monospace';
+      g.fillStyle = fell ? '#F43F5E' : '#34D399';
+      g.fillText(fell ? 'NAIVE: OVER-PULL → CoM OUT (FALL!)' : (b1UseKin && clamped ? 'KINNET: WHOLE-BODY COUNTER-BALANCE' : 'REACHABLE · CoM BALANCED'), 12, 17);
+    }
+
+    function setB2Mode(useDual) {
+      b2UseDual = useDual;
+      document.getElementById('b2Fixed').className = !useDual ? 'chip warn-active' : 'chip';
+      document.getElementById('b2Dual').className = useDual ? 'chip active' : 'chip';
+      drawB2();
+    }
+    function drawB2() {
+      const c = document.getElementById('b2Canvas'), g = c.getContext('2d');
+      const W = c.width, H = c.height;
+      const sc = Number(document.getElementById('b2Scale').value) / 100;
+      document.getElementById('b2Val').textContent = sc.toFixed(2) + '×';
+      g.clearRect(0, 0, W, H);
+
+      const sx = 54, sy = 96;
+      const L1 = 68 * sc, L2 = 58 * sc;
+      const reqTau = sc; // exact required torque scales linearly with lever arm
+      const appTau = b2UseDual ? reqTau : 1.0;
+      const errPct = Math.round(Math.abs(appTau - reqTau) / reqTau * 100);
+      // In Graph Mask mode, torque mismatch visibly sags/overshoots the arm tip!
+      const sag = b2UseDual ? 0 : (reqTau - 1.0) * 26;
+      const ex = sx + L1 * 0.88, ey = sy - L1 * 0.34 + sag * 0.45;
+      const hx = ex + L2 * 0.90, hy = ey + L2 * 0.14 + sag;
+
+      // Reference target horizontal height (dashed)
+      const refY = sy - L1 * 0.34 + L2 * 0.14;
+      g.strokeStyle = 'rgba(255,255,255,0.12)'; g.setLineDash([3, 3]); g.lineWidth = 1;
+      g.beginPath(); g.moveTo(sx, refY); g.lineTo(W - 14, refY); g.stroke(); g.setLineDash([]);
+
+      // Link segments
+      g.strokeStyle = '#94A3B8'; g.lineWidth = 6; g.lineCap = 'round';
+      g.beginPath(); g.moveTo(sx, sy); g.lineTo(ex, ey); g.lineTo(hx, hy); g.stroke();
+
+      // End-effector anchor wrench w_a
+      g.strokeStyle = '#F59E0B'; g.lineWidth = 2;
+      g.beginPath(); g.moveTo(hx, hy); g.lineTo(hx, hy + 24); g.stroke();
+      g.fillStyle = '#F59E0B'; g.beginPath(); g.moveTo(hx, hy + 28); g.lineTo(hx - 4, hy + 20); g.lineTo(hx + 4, hy + 20); g.closePath(); g.fill();
+      g.font = '600 8.5px "JetBrains Mono", monospace';
+      g.fillText('w_a', Math.min(W - 26, hx + 6), hy + 22);
+
+      const col = b2UseDual ? '#34D399' : (errPct > 6 ? '#F43F5E' : '#34D399');
+      // Exact J^T pullback & Gram J^T J direct coupling animation!
+      if (b2UseDual) {
+        // Direct emerald J^T wrench pullback pulse from anchor -> shoulder & elbow
+        const p1 = (bAnimClock * 0.85) % 1.0;
+        const jx = hx + (sx - hx) * p1, jy = hy + (sy - hy) * p1;
+        g.strokeStyle = 'rgba(52,211,153,0.45)'; g.lineWidth = 1.4; g.setLineDash([3, 2]);
+        g.beginPath(); g.moveTo(hx, hy); g.lineTo(sx, sy); g.stroke(); g.setLineDash([]);
+        g.fillStyle = '#34D399'; g.beginPath(); g.arc(jx, jy, 3.2, 0, Math.PI * 2); g.fill();
+
+        // Sky-blue Gram J^T J direct joint-to-joint attention arc (bypasses multi-hop!)
+        g.strokeStyle = 'rgba(96,165,250,0.85)'; g.lineWidth = 1.6;
+        g.beginPath(); g.moveTo(sx, sy - 7); g.quadraticCurveTo((sx + ex) * 0.5, sy - 50, ex, ey - 7); g.stroke();
+        const tG = (bAnimClock * 1.1) % 1.0;
+        const gx = (1-tG)*(1-tG)*sx + 2*(1-tG)*tG*((sx+ex)*0.5) + tG*tG*ex;
+        const gy = (1-tG)*(1-tG)*(sy-7) + 2*(1-tG)*tG*(sy-50) + tG*tG*(ey-7);
+        g.fillStyle = '#60A5FA'; g.beginPath(); g.arc(gx, gy, 3.0, 0, Math.PI * 2); g.fill();
+        g.fillText('Gram JᵀJ', (sx + ex) * 0.5 - 24, sy - 34);
+      } else {
+        // Slow hop-by-hop graph mask bottleneck indicator
+        g.fillStyle = '#F43F5E'; g.font = '500 8.5px "JetBrains Mono", monospace';
+        g.fillText('MULTI-HOP MASK (NO Jᵀ)', sx + 12, sy - 36);
+      }
+
+      // Shoulder & elbow torque arcs
+      g.strokeStyle = col; g.lineWidth = 3;
+      g.beginPath(); g.arc(sx, sy, 13 + appTau * 8, -Math.PI * 0.85, -Math.PI * 0.15); g.stroke();
+      g.fillStyle = '#0B0E14'; g.strokeStyle = '#F5F7FA'; g.lineWidth = 1.6;
+      g.beginPath(); g.arc(sx, sy, 5.5, 0, Math.PI * 2); g.fill(); g.stroke();
+      g.beginPath(); g.arc(ex, ey, 4.5, 0, Math.PI * 2); g.fill(); g.stroke();
+
+      // Bottom lever-arm readout
+      g.fillStyle = '#94A3B8'; g.font = '500 8.5px "JetBrains Mono", monospace';
+      g.fillText(`LEVER r=${sc.toFixed(2)}× · τ_applied=${appTau.toFixed(2)}× vs τ_req=${reqTau.toFixed(2)}×`, 12, 142);
+
+      g.font = '600 9.5px "JetBrains Mono", monospace';
+      g.fillStyle = col;
+      g.fillText(b2UseDual
+        ? `J(q)ᵀ + GRAM: EXACT TORQUE (0% ERR)`
+        : `FIXED MASK: ${errPct}% TORQUE MISMATCH!`, 12, 17);
+    }
+
+    function setB3Mass(m) {
+      document.getElementById('b3Mass').value = m;
+      drawB3();
+    }
+    function drawB3() {
+      const c = document.getElementById('b3Canvas'), g = c.getContext('2d');
+      const W = c.width, H = c.height;
+      const mass = Number(document.getElementById('b3Mass').value);
+      document.getElementById('b3Val').textContent = mass + 'kg';
+      g.clearRect(0, 0, W, H);
+
+      const x0 = 24, x1 = W - 12, yMid = 78;
+      g.strokeStyle = 'rgba(255,255,255,0.18)'; g.lineWidth = 1;
+      g.beginPath(); g.moveTo(x0, 26); g.lineTo(x0, 124); g.lineTo(x1, 124); g.stroke();
+      g.strokeStyle = 'rgba(255,255,255,0.12)'; g.setLineDash([3, 3]);
+      g.beginPath(); g.moveTo(x0, yMid); g.lineTo(x1, yMid); g.stroke(); g.setLineDash([]);
+
+      const mRatio = mass / 34.0;
+      const evalFixed = (t) => {
+        if (mRatio < 0.85) return Math.exp(-0.42 * t) * Math.sin((14 / Math.sqrt(mRatio)) * t) * 32;
+        if (mRatio > 1.35) return (1 - Math.exp(-1.2 * t)) * (mRatio - 1.0) * 34 + Math.sin(2.5 * t) * Math.exp(-0.6 * t) * 12;
+        return Math.exp(-1.5 * t) * Math.sin(7.0 * t) * 24;
+      };
+      const evalDual = (t) => -Math.exp(-3.4 * t) * Math.sin(3.6 * t) * 26;
+
+      const steps = 110;
+      // Fixed-PD curve (red)
+      g.strokeStyle = '#F43F5E'; g.lineWidth = 1.6; g.beginPath();
+      for (let i = 0; i <= steps; i++) {
+        const t = i / steps * 3.0;
+        const px = x0 + (i / steps) * (x1 - x0);
+        const py = Math.max(28, Math.min(122, yMid + evalFixed(t)));
+        if (i === 0) g.moveTo(px, py); else g.lineTo(px, py);
+      }
+      g.stroke();
+
+      // ZeroTracker Passive curve (emerald)
+      g.strokeStyle = '#34D399'; g.lineWidth = 2.3; g.beginPath();
+      for (let i = 0; i <= steps; i++) {
+        const t = i / steps * 3.0;
+        const px = x0 + (i / steps) * (x1 - x0);
+        const py = yMid + evalDual(t);
+        if (i === 0) g.moveTo(px, py); else g.lineTo(px, py);
+      }
+      g.stroke();
+
+      // Live animated tracer dots riding BOTH curves so chatter vs damping is felt in real time!
+      const tCur = (bAnimClock * 0.72) % 3.0;
+      const tx = x0 + (tCur / 3.0) * (x1 - x0);
+      const tyF = Math.max(28, Math.min(122, yMid + evalFixed(tCur)));
+      const tyD = yMid + evalDual(tCur);
+      g.fillStyle = '#F43F5E'; g.beginPath(); g.arc(tx, tyF, 3.8, 0, Math.PI * 2); g.fill();
+      g.fillStyle = '#34D399'; g.beginPath(); g.arc(tx, tyD, 4.2, 0, Math.PI * 2); g.fill();
+
+      // Live adaptive gain footer inside canvas!
+      const kAdapt = (mRatio).toFixed(2);
+      const dAdapt = (Math.sqrt(mRatio)).toFixed(2);
+      g.font = '500 8.5px "JetBrains Mono", monospace';
+      g.fillStyle = '#F43F5E'; g.fillText('FIXED-PD: K=1.00× D=1.00×', 12, 142);
+      g.fillStyle = '#34D399'; g.fillText(`ZEROTRACKER: K=${kAdapt}× D=${dAdapt}×`, W - 154, 142);
+
+      g.font = '600 9.5px "JetBrains Mono", monospace';
+      g.fillStyle = '#F43F5E';
+      const fixedNote = mRatio < 0.85 ? 'FIXED-PD: HF CHATTER!' : (mRatio > 1.35 ? 'FIXED-PD: HEAVY SAG!' : 'FIXED-PD: NOMINAL');
+      g.fillText(fixedNote, 12, 17);
+      g.fillStyle = '#34D399';
+      g.fillText('ZEROTRACKER: PASSIVE', W - 118, 17);
+    }
+
+    function animateBarriers() {
+      bAnimClock += 0.025;
+      drawB1(); drawB2(); drawB3();
+      requestAnimationFrame(animateBarriers);
+    }
+    animateBarriers();
+
+    // =========================================================================
+    // 6. HEAD-TO-HEAD BASELINE COMPARISON (URMA · AMORPHEUS · BODY TRANSFORMER)
+    // =========================================================================
+    const BASE_AGG = {
+      zs27: {
+        title: 'AGGREGATE · 27 UNSEEN HUMANOIDS (ZERO-SHOT)',
+        note: 'Across all 27 unseen humanoids, ZeroTracker achieves <strong style="color:var(--signal);">+26.2% to +50.7%</strong> higher balance stability, <strong style="color:#60A5FA;">2.8× – 16.0×</strong> higher dynamic motion tracking, and <strong style="color:var(--ink);">2.0× – 2.4×</strong> lower tracking error (63.8 mm vs. 126.1–152.2 mm).',
+        rows: [
+          { name: 'ZeroTracker (Ours)', ours: true,  seed: 76.2, lafan: 30.4, mpjpe: 63.8 },
+          { name: "URMA (CoRL'24)",  ours: false, seed: 50.0, lafan: 10.7, mpjpe: 152.2 },
+          { name: 'Amorpheus',       ours: false, seed: 28.1, lafan: 1.9,  mpjpe: 128.3 },
+          { name: 'BodyTransformer', ours: false, seed: 25.5, lafan: 2.4,  mpjpe: 126.1 }
+        ]
+      },
+      clean33: {
+        title: 'AGGREGATE · ALL 33 OPEN-SOURCE HUMANOIDS',
+        note: 'Across all 33 open-source humanoids, ZeroTracker leads every baseline by <strong style="color:var(--signal);">+22.4% to +45.8%</strong> on balance stability and <strong style="color:#60A5FA;">2.1× – 6.6×</strong> on LAFAN1 tracking.',
+        rows: [
+          { name: 'ZeroTracker (Ours)', ours: true,  seed: 79.7, lafan: 35.7, mpjpe: 60.4 },
+          { name: "URMA (CoRL'24)",  ours: false, seed: 57.3, lafan: 17.2, mpjpe: 146.9 },
+          { name: 'Amorpheus',       ours: false, seed: 36.0, lafan: 5.4,  mpjpe: 121.0 },
+          { name: 'BodyTransformer', ours: false, seed: 33.9, lafan: 5.7,  mpjpe: 118.3 }
+        ]
+      },
+      zs11: {
+        title: 'AGGREGATE · 11 STANDARD UNSEEN COMMERCIAL HUMANOIDS',
+        note: 'On the 11 standard unseen commercial humanoids, ZeroTracker achieves <strong style="color:var(--signal);">83.0%</strong> balance stability, <strong style="color:#60A5FA;">36.8%</strong> LAFAN1 tracking, and <strong style="color:var(--ink);">53.5 mm</strong> MPJPE.',
+        rows: [
+          { name: 'ZeroTracker (Ours)', ours: true,  seed: 83.0, lafan: 36.8, mpjpe: 53.5 },
+          { name: "URMA (CoRL'24)",  ours: false, seed: 55.3, lafan: 12.4, mpjpe: 159.7 },
+          { name: 'Amorpheus',       ours: false, seed: 36.9, lafan: 4.2,  mpjpe: 122.6 },
+          { name: 'BodyTransformer', ours: false, seed: 32.3, lafan: 4.5,  mpjpe: 123.5 }
+        ]
+      },
+      seen6: {
+        title: 'AGGREGATE · 6 TRAINING HUMANOIDS',
+        note: 'On the 6 training humanoids, ZeroTracker achieves <strong style="color:var(--signal);">95.2%</strong> balance stability, <strong style="color:#60A5FA;">59.2%</strong> LAFAN1 tracking, and <strong style="color:var(--ink);">45.1 mm</strong> MPJPE (2.7× lower than URMA).',
+        rows: [
+          { name: 'ZeroTracker (Ours)', ours: true,  seed: 95.2, lafan: 59.2, mpjpe: 45.1 },
+          { name: "URMA (CoRL'24)",  ours: false, seed: 90.4, lafan: 46.7, mpjpe: 123.1 },
+          { name: 'Amorpheus',       ours: false, seed: 71.7, lafan: 21.4, mpjpe: 88.1 },
+          { name: 'BodyTransformer', ours: false, seed: 71.5, lafan: 20.6, mpjpe: 83.4 }
+        ]
+      }
+    };
+
+    let curBaseScope = 'zs27';
+    function renderAggBase() {
+      const data = BASE_AGG[curBaseScope];
+      document.getElementById('aggTitle').textContent = data.title;
+      document.getElementById('aggSummary').innerHTML = data.note;
+      document.getElementById('aggMount').innerHTML = data.rows.map(r => `
+        <div class="base-row ${r.ours ? 'ours' : ''}">
+          <div style="font-weight:${r.ours ? 700 : 500}; color:${r.ours ? 'var(--ink)' : 'var(--ink-sec)'};">${r.name}</div>
+          <div>
+            <div class="bar-cell">
+              <div class="bar-bg"><div class="bar-fill" style="width:${r.seed}%; background:${r.ours ? '#34D399' : '#64748B'};"></div></div>
+              <div class="bar-num" style="color:${r.ours ? '#34D399' : 'var(--ink-sec)'}; font-weight:${r.ours ? 700 : 400};">${r.seed.toFixed(1)}%</div>
+            </div>
+          </div>
+          <div>
+            <div class="bar-cell">
+              <div class="bar-bg"><div class="bar-fill" style="width:${r.lafan}%; background:${r.ours ? '#60A5FA' : '#475569'};"></div></div>
+              <div class="bar-num" style="color:${r.ours ? '#60A5FA' : 'var(--ink-sec)'}; font-weight:${r.ours ? 700 : 400};">${r.lafan.toFixed(1)}%</div>
+            </div>
+          </div>
+          <div class="mono" style="text-align:right; font-size:11.5px; color:${r.ours ? 'var(--signal)' : 'var(--ink-dim)'}; font-weight:${r.ours ? 700 : 400};">${r.mpjpe.toFixed(1)} mm</div>
+        </div>
+      `).join('');
+    }
+    function setBaseScope(sc, btn) {
+      curBaseScope = sc;
+      document.querySelectorAll('#baseScopeBar .chip').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderAggBase();
+    }
+    renderAggBase();
+
+    function showAbTab(idx, btn) {
+      btn.parentElement.querySelectorAll('.chip').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      [0, 1, 2].forEach(i => document.getElementById('abTab' + i).style.display = (i === idx) ? 'block' : 'none');
+    }
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 1600);
+    }
+    function copyBib() {
+      const txt = document.getElementById('bibCode').textContent;
+      navigator.clipboard && navigator.clipboard.writeText(txt);
+      showToast('BIBTEX COPIED TO CLIPBOARD');
+    }
+  </script>
+  <script type="module">
+    import { initMuJoCoHero } from './wasm/mujoco_hero_viewer.js';
+    const st = document.getElementById('mjStatus');
+    const vp = document.getElementById('mjViewport');
+    if (location.protocol === 'file:') {
+      st.textContent = 'HTTP SERVER REQUIRED FOR WASM';
+      st.style.color = '#F43F5E';
+      vp.innerHTML = '<div style="text-align:center; padding:24px; line-height:1.8;">'
+        + '<div style="color:#F5F7FA; font-weight:600; margin-bottom:6px;">MuJoCo WASM Requires Local HTTP Server</div>'
+        + '<div style="color:#94A3B8; font-size:11px;">Double-click <code style="color:#34D399;">preview_local.bat</code> or open <code style="color:#34D399;">http://localhost:8080/project_page/index.html</code></div>'
+        + '</div>';
+    } else {
+      initMuJoCoHero({
+        containerId: 'mjViewport',
+        statusId: 'mjStatus',
+        mpjpeId: 'mjMpjpe',
+        timeId: 'mjTime',
+        scrubId: 'mjScrub',
+        playBtnId: 'mjPlayBtn',
+        gramCanvasId: 'mjGramCv',
+        energyCanvasId: 'mjEnergyCv',
+        dynPairId: 'mjDynPair',
+        kinDriverId: 'mjKinDrv',
+        comBarId: 'mjComBar',
+        kBarId: 'mjKBar',
+        kValId: 'mjKVal',
+        dBarId: 'mjDBar',
+        dValId: 'mjDVal',
+      }).then((api) => {
+        window._mjViewer = api;
+      }).catch((err) => {
+        console.error(err);
+        st.textContent = 'WASM INIT ERROR';
+        st.style.color = '#F43F5E';
+        vp.innerHTML = '<div style="padding:20px; color:#F43F5E;">Failed to init MuJoCo WASM: ' + String(err) + '</div>';
+      });
+    }
+  </script>
+</body>
+</html>
