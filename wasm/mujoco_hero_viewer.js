@@ -214,6 +214,26 @@ export async function initMuJoCoHero(opts) {
   const loadedRobots = {};
   const trajCache = { g1_salsa: g1SalsaPre };
   const prefetchedPacks = { g1: { xmlText: g1XmlPre, files: g1PackPre } };
+  const prefetchPromises = {};
+
+  function prefetchRobot(rkey) {
+    if (prefetchedPacks[rkey] || loadedRobots[rkey]) return Promise.resolve(prefetchedPacks[rkey]);
+    if (prefetchPromises[rkey]) return prefetchPromises[rkey];
+    const rinfo = manifest.robots[rkey];
+    if (!rinfo) return Promise.resolve(null);
+    prefetchPromises[rkey] = Promise.all([
+      fetch(`./wasm/${rinfo.xml}`).then(r => r.text()),
+      fetchAndUnpackQMesh(`./wasm/${rkey}_qmesh.bin.gz`),
+    ]).then(([xmlText, files]) => {
+      const pack = { xmlText, files };
+      prefetchedPacks[rkey] = pack;
+      return pack;
+    }).catch((err) => {
+      delete prefetchPromises[rkey];
+      throw err;
+    });
+    return prefetchPromises[rkey];
+  }
 
   function buildThreeMeshesFromMuJoCo(m) {
     // Clear previous robot meshes
@@ -302,12 +322,7 @@ export async function initMuJoCoHero(opts) {
 
     let pack = prefetchedPacks[rkey];
     if (!pack) {
-      const [xmlText, files] = await Promise.all([
-        fetch(`./wasm/${rinfo.xml}`).then(r => r.text()),
-        fetchAndUnpackQMesh(`./wasm/${rkey}_qmesh.bin.gz`),
-      ]);
-      pack = { xmlText, files };
-      prefetchedPacks[rkey] = pack;
+      pack = await prefetchRobot(rkey);
     }
     mujoco.FS.writeFile(`/working/${rinfo.xml}`, pack.xmlText);
     for (const { fname, bytes } of pack.files) {
@@ -532,21 +547,10 @@ export async function initMuJoCoHero(opts) {
   syncMuJoCoFrame(0);
   requestAnimationFrame(animate);
 
-  // Silent background prefetch of AgiBot X2 (3.9 MB 1-file pack) so switching robots is 0ms instant!
-  setTimeout(() => {
-    if (!prefetchedPacks.x2) {
-      Promise.all([
-        fetch('./wasm/x2.xml').then(r => r.text()),
-        fetchAndUnpackQMesh('./wasm/x2_qmesh.bin.gz'),
-      ]).then(([xmlText, files]) => {
-        prefetchedPacks.x2 = { xmlText, files };
-      }).catch(() => {});
-    }
-  }, 1200);
-
   return {
     setRobot: (rk) => loadRobotAndMotion(rk, curMotion),
     setMotion: (mk) => loadRobotAndMotion(curRobot, mk),
+    prefetchRobot: (rk) => prefetchRobot(rk).catch(() => {}),
     toggleStrings: () => { showStrings = !showStrings; return showStrings; },
     resetCamera: () => {
       camera.position.set(1.85, 1.35, 2.35);

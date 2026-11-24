@@ -5,7 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ZeroTracker — Zero-Shot Cross-Embodiment Whole-Body Control</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <!-- Flatten Hero 3D MuJoCo WASM critical waterfall -->
+  <link rel="modulepreload" href="./wasm/mujoco_hero_viewer.js">
+  <link rel="modulepreload" href="./wasm/lib/mujoco_wasm.js">
+  <link rel="modulepreload" href="./wasm/lib/three.module.js">
+  <link rel="modulepreload" href="./wasm/lib/three.core.js">
+  <link rel="modulepreload" href="./wasm/lib/OrbitControls.js">
+  <link rel="preload" href="./wasm/manifest.json" as="fetch" crossorigin>
+  <link rel="preload" href="./wasm/g1.xml" as="fetch" crossorigin>
+  <link rel="preload" href="./wasm/g1_qmesh.bin.gz" as="fetch" crossorigin>
+  <link rel="preload" href="./wasm/traj_g1_salsa.json" as="fetch" crossorigin>
   <style>
     :root {
       --bg: #060709;
@@ -445,7 +456,7 @@
           <div class="ctrl-grp" id="mjRobotBar">
             <span class="mono" style="font-size:10px; color:var(--ink-dim); margin-right:2px;">ROBOT:</span>
             <button class="chip active" onclick="mjSelectRobot('g1', this)">Unitree G1 (34kg · ZS)</button>
-            <button class="chip" onclick="mjSelectRobot('x2', this)">AgiBot X2 (41kg · #1 Unseen)</button>
+            <button class="chip" onpointerenter="window._mjViewer && window._mjViewer.prefetchRobot && window._mjViewer.prefetchRobot('x2')" onclick="mjSelectRobot('x2', this)">AgiBot X2 (41kg · #1 Unseen)</button>
           </div>
           <div class="ctrl-grp">
             <button class="chip sig-active" id="mjStringsBtn" onclick="mjToggleStrings()">9-Strings: ON</button>
@@ -579,9 +590,7 @@
       </div>
 
       <div class="video-deck">
-        <video id="stageVideo" autoplay loop muted playsinline poster="./viz/dualzero_cinema_showcase/dualzero_slate_family16_dance_latino_salsa_step_180_R_002__A322_cover.png">
-          <source src="./viz/dualzero_cinema_showcase/dualzero_slate_family16_dance_latino_salsa_step_180_R_002__A322.mp4" type="video/mp4" />
-        </video>
+        <video id="stageVideo" loop muted playsinline preload="none" poster="./viz/dualzero_cinema_showcase/dualzero_slate_family16_dance_latino_salsa_step_180_R_002__A322_cover.webp"></video>
         <div class="v-tabs">
           <button class="vtab active" onclick="selectVideo(0, this)">
             <div class="mono" style="font-size:10px; color:var(--signal);">01 · 16-ROBOT SALSA</div>
@@ -894,7 +903,7 @@
       <p class="sec-desc">Instead of bolting together ad-hoc modules, ZeroTracker applies the exact same puppeteer factorization—<em>shared neural coordination over 9 universal anchor strings × exact online differential mechanics</em>—from kinematic feasibility to torque actuation.</p>
 
       <div class="arch-frame">
-        <img src="./assets/dualzero_architecture.svg" alt="ZeroTracker Architecture Diagram" />
+        <img src="./assets/dualzero_architecture.svg" alt="ZeroTracker Architecture Diagram" loading="lazy" decoding="async" />
       </div>
 
       <div class="theorem-box">
@@ -1572,25 +1581,46 @@
     let curLighting = 'slate', curVidIdx = 0;
     const VID_MAP = {
       slate: [
-        ['./viz/dualzero_cinema_showcase/dualzero_slate_family16_dance_latino_salsa_step_180_R_002__A322.mp4', './viz/dualzero_cinema_showcase/dualzero_slate_family16_dance_latino_salsa_step_180_R_002__A322_cover.png'],
-        ['./viz/dualzero_cinema_showcase/dualzero_slate_family16_macarena_001__A545.mp4', './viz/dualzero_cinema_showcase/dualzero_slate_family16_macarena_001__A545_cover.png'],
-        ['./viz/dualzero_cinema_showcase/dualzero_slate_zeroshot4_dance2.mp4', './viz/dualzero_cinema_showcase/dualzero_slate_zeroshot4_dance2_cover.png'],
-        ['./viz/dualzero_cinema_showcase/dualzero_slate_closeup3_dance1.mp4', './viz/dualzero_cinema_showcase/dualzero_slate_closeup3_dance1_cover.png'],
-        ['./viz/dualzero_cinema_showcase/dualzero_slate_solo_g1_dance2.mp4', './viz/dualzero_cinema_showcase/dualzero_slate_solo_g1_dance2_cover.png']
+        ['./viz/dualzero_cinema_showcase/dualzero_slate_family16_dance_latino_salsa_step_180_R_002__A322.mp4', './viz/dualzero_cinema_showcase/dualzero_slate_family16_dance_latino_salsa_step_180_R_002__A322_cover.webp'],
+        ['./viz/dualzero_cinema_showcase/dualzero_slate_family16_macarena_001__A545.mp4', './viz/dualzero_cinema_showcase/dualzero_slate_family16_macarena_001__A545_cover.webp'],
+        ['./viz/dualzero_cinema_showcase/dualzero_slate_zeroshot4_dance2.mp4', './viz/dualzero_cinema_showcase/dualzero_slate_zeroshot4_dance2_cover.webp'],
+        ['./viz/dualzero_cinema_showcase/dualzero_slate_closeup3_dance1.mp4', './viz/dualzero_cinema_showcase/dualzero_slate_closeup3_dance1_cover.webp'],
+        ['./viz/dualzero_cinema_showcase/dualzero_slate_solo_g1_dance2.mp4', './viz/dualzero_cinema_showcase/dualzero_slate_solo_g1_dance2_cover.webp']
       ],
       gallery: [
-        ['./viz/dualzero_cinema_showcase/dualzero_gallery_family16_dance_latino_salsa_step_180_R_002__A322.mp4', './viz/dualzero_cinema_showcase/dualzero_gallery_family16_dance_latino_salsa_step_180_R_002__A322_cover.png'],
-        ['./viz/dualzero_cinema_showcase/dualzero_gallery_family16_macarena_001__A545.mp4', './viz/dualzero_cinema_showcase/dualzero_gallery_family16_macarena_001__A545_cover.png'],
-        ['./viz/dualzero_cinema_showcase/dualzero_gallery_zeroshot4_dance2.mp4', './viz/dualzero_cinema_showcase/dualzero_gallery_zeroshot4_dance2_cover.png'],
-        ['./viz/dualzero_cinema_showcase/dualzero_gallery_closeup3_dance1.mp4', './viz/dualzero_cinema_showcase/dualzero_gallery_closeup3_dance1_cover.png'],
-        ['./viz/dualzero_cinema_showcase/dualzero_slate_solo_g1_dance2.mp4', './viz/dualzero_cinema_showcase/dualzero_slate_solo_g1_dance2_cover.png']
+        ['./viz/dualzero_cinema_showcase/dualzero_gallery_family16_dance_latino_salsa_step_180_R_002__A322.mp4', './viz/dualzero_cinema_showcase/dualzero_gallery_family16_dance_latino_salsa_step_180_R_002__A322_cover.webp'],
+        ['./viz/dualzero_cinema_showcase/dualzero_gallery_family16_macarena_001__A545.mp4', './viz/dualzero_cinema_showcase/dualzero_gallery_family16_macarena_001__A545_cover.webp'],
+        ['./viz/dualzero_cinema_showcase/dualzero_gallery_zeroshot4_dance2.mp4', './viz/dualzero_cinema_showcase/dualzero_gallery_zeroshot4_dance2_cover.webp'],
+        ['./viz/dualzero_cinema_showcase/dualzero_gallery_closeup3_dance1.mp4', './viz/dualzero_cinema_showcase/dualzero_gallery_closeup3_dance1_cover.webp'],
+        ['./viz/dualzero_cinema_showcase/dualzero_slate_solo_g1_dance2.mp4', './viz/dualzero_cinema_showcase/dualzero_slate_solo_g1_dance2_cover.webp']
       ]
     };
+    let stageVidLoaded = false;
     function applyVid() {
       const [mp4, poster] = VID_MAP[curLighting][curVidIdx];
       const v = document.getElementById('stageVideo');
-      v.poster = poster; v.src = mp4; v.play();
+      v.poster = poster;
+      v.preload = 'metadata';
+      v.src = mp4;
+      stageVidLoaded = true;
+      v.play().catch(() => {});
     }
+    // Lazy-load showcase video only when scrolled near section 01 so Hero WASM gets 100% bandwidth
+    (function setupLazyShowcaseVideo() {
+      const v = document.getElementById('stageVideo');
+      if (!v || typeof IntersectionObserver === 'undefined') { applyVid(); return; }
+      const io = new IntersectionObserver((entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) {
+            if (!stageVidLoaded) applyVid();
+            else v.play().catch(() => {});
+          } else if (stageVidLoaded && !v.paused) {
+            v.pause();
+          }
+        }
+      }, { rootMargin: '250px 0px' });
+      io.observe(v);
+    })();
     function selectVideo(idx, btn) {
       curVidIdx = idx;
       document.querySelectorAll('.vtab').forEach(b => b.classList.remove('active'));
