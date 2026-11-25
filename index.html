@@ -378,6 +378,20 @@
     .leg-row { display: flex; gap: 14px; flex-wrap: wrap; padding: 10px 16px; border-bottom: 1px solid var(--hairline); font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--ink-sec); }
     .leg-dot { display: inline-block; width: 8px; height: 8px; margin-right: 5px; vertical-align: middle; }
 
+    /* Embodiment Scaling Law Section */
+    .scale-grid { display: grid; grid-template-columns: 1.04fr 0.96fr; gap: 18px; margin-bottom: 18px; }
+    @media (max-width: 980px) { .scale-grid { grid-template-columns: 1fr; } }
+    .scale-card { background: var(--cell); border: 1px solid var(--hairline-mid); display: flex; flex-direction: column; overflow: hidden; }
+    .scale-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 11px 16px; background: var(--cell-2); border-bottom: 1px solid var(--hairline); font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: var(--ink); }
+    .scale-canvas-wrap { position: relative; background: #07090D; padding: 10px; }
+    .scale-canvas-wrap canvas { width: 100%; height: 340px; display: block; cursor: crosshair; }
+    .scale-tip { position: absolute; pointer-events: none; background: rgba(9, 12, 18, 0.95); border: 1px solid var(--signal-line); padding: 8px 11px; font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: var(--ink); line-height: 1.55; opacity: 0; transition: opacity 0.12s; z-index: 12; min-width: 190px; box-shadow: 0 8px 24px rgba(0,0,0,0.55); }
+    .scale-insights { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 18px; }
+    @media (max-width: 860px) { .scale-insights { grid-template-columns: 1fr; } }
+    .scale-ins-card { background: var(--cell); border: 1px solid var(--hairline); padding: 14px 16px; }
+    .scale-row-active { background: rgba(52, 211, 153, 0.085) !important; }
+    .scale-row-active td { color: var(--ink) !important; }
+
     /* BibTeX */
     .bib-box {
       background: var(--cell); border: 1px solid var(--hairline-mid); padding: 20px 24px;
@@ -406,6 +420,7 @@
       <a href="#benchmark">33-ROBOT EVAL</a>
       <a href="#method" class="hide-sm">METHOD</a>
       <a href="#ablations">ABLATIONS</a>
+      <a href="#scaling" class="hide-sm">SCALING</a>
       <a href="#bibtex" class="hide-sm">BIBTEX</a>
       <button class="cta-nav" style="border:none; cursor:pointer;" onclick="showToast('PAPER & CODE COMING SOON')">PAPER / CODE · SOON</button>
     </nav>
@@ -1223,10 +1238,126 @@
     </section>
 
     <!-- ===================================================================== -->
-    <!-- 08. BIBTEX & FOOTER                                                   */
+    <!-- 05. EMBODIMENT SCALING LAW (FIXED-25 ZERO-SHOT BENCHMARK, @2250)      -->
+    <!-- ===================================================================== -->
+    <div class="sec-bar" id="scaling">
+      <span>05 // EMBODIMENT SCALING LAW · FIXED-25 UNSEEN HUMANOIDS (N = 1 → 8)</span>
+      <span>IDENTICAL 2,250-ITER BUDGET · CONVEX-HULL EXPANSION</span>
+    </div>
+    <section class="section-pad">
+      <div class="sec-head-row" style="margin-bottom:18px;">
+        <div>
+          <div class="mono" style="font-size:10.5px; color:var(--signal); letter-spacing:0.06em; margin-bottom:6px;">MORPHOLOGICAL SCALING &amp; CONVEX-HULL GEOMETRY</div>
+          <h2 class="sec-h2">Embodiment Scaling Law: How Many Training Robots Suffice?</h2>
+          <p class="sec-desc">All 6 policies are trained for an identical 2,250 iterations and evaluated strictly zero-shot on the exact same <strong>Fixed-25 Unseen Humanoids</strong>. Click any regime below (or hit <strong>Play N=1→8</strong>) to watch the training convex hull expand across the mass–height manifold and light up all 25 unseen robots.</p>
+        </div>
+      </div>
+
+      <div class="filter-bar" style="margin-bottom:16px;">
+        <div class="ctrl-grp" id="scaleRegimeBar">
+          <button class="chip" onclick="setScaleRegime(0, this)">N=1 (pm01)</button>
+          <button class="chip" onclick="setScaleRegime(1, this)">N=2 Extremes</button>
+          <button class="chip" onclick="setScaleRegime(2, this)">N=4 Clustered</button>
+          <button class="chip" onclick="setScaleRegime(3, this)">N=4 Stratified</button>
+          <button class="chip" onclick="setScaleRegime(4, this)">N=6 Basis-6</button>
+          <button class="chip active" onclick="setScaleRegime(5, this)">N=8 Hull (17–86kg)</button>
+        </div>
+        <div class="ctrl-grp">
+          <button class="chip sig-active" id="scalePlayBtn" onclick="toggleScalePlay()">▶ Play N=1→8</button>
+          <span class="mono" style="font-size:10.5px; color:var(--ink-dim); align-self:center; margin:0 4px;">METRIC:</span>
+          <button class="chip active" id="scaleMetSeed" onclick="setScaleMetric('seed')">SEED-200</button>
+          <button class="chip" id="scaleMetLafan" onclick="setScaleMetric('lafan')">LAFAN-60</button>
+        </div>
+      </div>
+
+      <div class="scale-grid">
+        <!-- Panel (a): Interactive Mass-Height Manifold & Convex Hull -->
+        <div class="scale-card">
+          <div class="scale-head">
+            <span>(a) MASS–HEIGHT MANIFOLD &amp; CONVEX-HULL EXPANSION</span>
+            <span id="scaleHullTag" style="color:var(--signal);">N=8 HULL · 17.3–86.1 kg</span>
+          </div>
+          <div class="scale-canvas-wrap">
+            <canvas id="scaleManifoldCv"></canvas>
+            <div class="scale-tip" id="scaleTip"></div>
+          </div>
+          <div class="leg-row" style="border-bottom:none; border-top:1px solid var(--hairline); padding:8px 14px;">
+            <span><i class="leg-dot" style="background:#34D399; border-radius:50%;"></i>High SR (&ge;80%)</span>
+            <span><i class="leg-dot" style="background:#F59E0B; border-radius:50%;"></i>Mid SR (40–79%)</span>
+            <span><i class="leg-dot" style="background:#F43F5E; border-radius:50%;"></i>Low SR (&lt;40%)</span>
+            <span><i class="leg-dot" style="background:#60A5FA; transform:rotate(45deg);"></i>Training Anchor</span>
+            <span style="margin-left:auto; color:var(--ink-dim);">HOVER ANY DOT FOR ROBOT STATS</span>
+          </div>
+        </div>
+
+        <!-- Panel (b): Interactive Zero-Shot Embodiment Scaling Curves -->
+        <div class="scale-card">
+          <div class="scale-head">
+            <span>(b) ZERO-SHOT SCALING CURVES (FIXED-25 UNSEEN)</span>
+            <span id="scaleCurveTag" style="color:var(--blue);">FIXED-25 SEED: 76.6%</span>
+          </div>
+          <div class="scale-canvas-wrap">
+            <canvas id="scaleCurveCv"></canvas>
+          </div>
+          <div class="leg-row" style="border-bottom:none; border-top:1px solid var(--hairline); padding:8px 14px;">
+            <span><i class="leg-dot" style="background:#60A5FA;"></i>Mid-20 In-Hull</span>
+            <span><i class="leg-dot" style="background:#F5F7FA;"></i>Fixed-25 Overall</span>
+            <span><i class="leg-dot" style="background:#34D399;"></i>Light-2 (&lt;20kg)</span>
+            <span><i class="leg-dot" style="background:#F43F5E;"></i>Heavy-3 (&gt;78kg)</span>
+            <span><i class="leg-dot" style="background:#F59E0B;"></i>N=4 Clustered</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3 Key Scientific Takeaways -->
+      <div class="scale-insights">
+        <div class="scale-ins-card">
+          <div class="mono" style="font-size:10px; color:var(--signal); margin-bottom:6px;">FINDING 01 // 2-ROBOT PHASE TRANSITION</div>
+          <div style="font-size:15px; font-weight:600; color:var(--ink); margin-bottom:5px;">N=1 → N=2 Jumps +34.9% Balance</div>
+          <p style="font-size:12.5px; color:var(--ink-sec); line-height:1.6;">Single-robot training (<code class="mono" style="color:var(--ink);">pm01</code>) fails to generalize (28.4% / 0.2%). Adding just one contrasting extreme (<code class="mono" style="color:var(--ink);">t1 + h2</code>) unlocks 63.3% balance and 70× higher LAFAN1 motion.</p>
+        </div>
+        <div class="scale-ins-card">
+          <div class="mono" style="font-size:10px; color:var(--blue); margin-bottom:6px;">FINDING 02 // RAPID N=6 SATURATION</div>
+          <div style="font-size:15px; font-weight:600; color:var(--ink); margin-bottom:5px;">86.8% In-Hull Balance with Only 6 Robots</div>
+          <p style="font-size:12.5px; color:var(--ink-sec); line-height:1.6;">Because exact <code class="mono" style="color:var(--ink);">J(q)ᵀ</code> &amp; <code class="mono" style="color:var(--ink);">Gram JᵀJ</code> absorb kinematic variance analytically, <code class="mono" style="color:var(--ink);">Basis-6</code> reaches 75.7% overall (86.8% Mid-20) and lowest 70.2 mm MPJPE.</p>
+        </div>
+        <div class="scale-ins-card">
+          <div class="mono" style="font-size:10px; color:var(--amber); margin-bottom:6px;">FINDING 03 // HULL GEOMETRY &gt; COUNT</div>
+          <div style="font-size:15px; font-weight:600; color:var(--ink); margin-bottom:5px;">N=8 Hull Boosts Light-2 by +13.0%</div>
+          <p style="font-size:12.5px; color:var(--ink-sec); line-height:1.6;">Expanding the hull to 17.3–86.1 kg (<code class="mono" style="color:var(--ink);">Bumi + OpenLoong</code>) lifts <code class="mono" style="color:var(--ink);">Light-2</code> from 69.2% → 82.2% (<code class="mono" style="color:var(--ink);">Hi</code> +25.5%, <code class="mono" style="color:var(--ink);">K1</code> +13.3% LAFAN) and boosts 90.6 kg <code class="mono" style="color:var(--ink);">Alex</code> 2.9×.</p>
+        </div>
+      </div>
+
+      <!-- Compact 6-Row Aggregate Scaling Table -->
+      <div class="base-panel">
+        <div class="base-panel-head">
+          <span class="mono" style="font-size:10.5px; color:var(--ink); font-weight:600;">AGGREGATE SCALING SUMMARY · FIXED-25 UNSEEN HUMANOIDS (@2250 ITERATIONS)</span>
+          <span class="mono" style="font-size:10px; color:var(--ink-dim);">CLICK ANY ROW TO INSPECT ITS CONVEX HULL ABOVE</span>
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="data-table" id="scaleSummaryTable">
+            <thead>
+              <tr>
+                <th>Training Regime</th>
+                <th>Mass Span</th>
+                <th>Fixed-25 (SEED / LAFAN)</th>
+                <th>Mid-20 In-Hull</th>
+                <th>Light-2 (&lt;20 kg)</th>
+                <th>Heavy-3 (&gt;78 kg)</th>
+                <th>LAFAN MPJPE</th>
+              </tr>
+            </thead>
+            <tbody id="scaleTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- 06. BIBTEX & FOOTER                                                   */
     /* ===================================================================== -->
     <div class="sec-bar" id="bibtex">
-      <span>05 // CITATION &amp; ARTIFACTS</span>
+      <span>06 // CITATION &amp; ARTIFACTS</span>
       <span>OPEN-SOURCE RELEASE UPON ACCEPTANCE</span>
     </div>
     <section class="section-pad" style="border-bottom:none;">
@@ -2195,6 +2326,390 @@
       navigator.clipboard && navigator.clipboard.writeText(txt);
       showToast('BIBTEX COPIED TO CLIPBOARD');
     }
+
+    // =========================================================================
+    // 7. INTERACTIVE EMBODIMENT SCALING LAW (FIXED-25 ZERO-SHOT, N = 1 -> 8)
+    // =========================================================================
+    (function initEmbodimentScalingLaw() {
+      const mCv = document.getElementById('scaleManifoldCv');
+      const cCv = document.getElementById('scaleCurveCv');
+      const tip = document.getElementById('scaleTip');
+      const tbody = document.getElementById('scaleTableBody');
+      if (!mCv || !cCv || !tbody) return;
+
+      const TRAIN_ANCHORS = {
+        bumi:      { name: 'Noetix Bumi',    m: 17.3, h: 94,  star: true },
+        t1:        { name: 'Booster T1',     m: 31.6, h: 120 },
+        atom01:    { name: 'Atom01',         m: 33.8, h: 125 },
+        rp1:       { name: 'RP1',            m: 39.1, h: 135 },
+        pm01:      { name: 'EngineAI PM01',  m: 40.9, h: 138 },
+        a3:        { name: 'AgiBot A3',      m: 58.0, h: 169 },
+        h2:        { name: 'Unitree H2',     m: 71.3, h: 180 },
+        openloong: { name: 'OpenLoong',      m: 86.1, h: 185, star: true }
+      };
+
+      const REGIMES = [
+        { key: 'n1',  n: 1, label: 'N=1 (pm01)',                 short: 'N=1 · 40.9 kg',       span: '40.9 kg',      anchors: ['pm01'], color: '#F43F5E',
+          seed: 28.4, lafan: 0.2,  midS: 32.4, midL: 0.2,  litS: 29.8, litL: 0.0,  hvyS: 1.2,  hvyL: 0.0, mpjpe: 100.5 },
+        { key: 'n2',  n: 2, label: 'N=2 (Extremes: t1+h2)',      short: 'N=2 · 31.6–71.3 kg',  span: '31.6–71.3 kg', anchors: ['t1', 'h2'], color: '#F59E0B',
+          seed: 63.3, lafan: 14.1, midS: 70.4, midL: 16.1, litS: 71.0, litL: 15.0, hvyS: 10.8, hvyL: 0.0, mpjpe: 89.1 },
+        { key: 'n4c', n: 4, label: 'N=4 (Clustered: 31–41 kg)',  short: 'N=4 CLUST. · 31–41 kg', span: '31.6–40.9 kg', anchors: ['t1', 'atom01', 'rp1', 'pm01'], color: '#F59E0B', clustered: true,
+          seed: 68.1, lafan: 23.4, midS: 77.3, midL: 26.6, litS: 76.8, litL: 26.7, hvyS: 1.0,  hvyL: 0.0, mpjpe: 83.8 },
+        { key: 'n4s', n: 4, label: 'N=4 (Stratified: 31–71 kg)', short: 'N=4 STRAT. · 31–71 kg', span: '31.6–71.3 kg', anchors: ['t1', 'pm01', 'a3', 'h2'], color: '#60A5FA',
+          seed: 65.4, lafan: 19.1, midS: 73.3, midL: 21.2, litS: 70.8, litL: 25.8, hvyS: 8.7,  hvyL: 0.0, mpjpe: 78.2 },
+        { key: 'n6',  n: 6, label: 'N=6 (Basis-6: 31–71 kg)',    short: 'N=6 BASIS · 31–71 kg', span: '31.6–71.3 kg', anchors: ['t1', 'atom01', 'rp1', 'pm01', 'a3', 'h2'], color: '#60A5FA',
+          seed: 75.7, lafan: 30.6, midS: 86.8, midL: 35.9, litS: 69.2, litL: 23.3, hvyS: 5.3,  hvyL: 0.0, mpjpe: 70.2 },
+        { key: 'n8',  n: 8, label: 'N=8 (Hull: 17–86 kg)',       short: 'N=8 HULL · 17.3–86.1 kg', span: '17.3–86.1 kg', anchors: ['bumi', 't1', 'atom01', 'rp1', 'pm01', 'a3', 'h2', 'openloong'], color: '#34D399',
+          seed: 76.6, lafan: 30.3, midS: 86.4, midL: 34.8, litS: 82.2, litL: 30.8, hvyS: 7.3,  hvyL: 0.0, mpjpe: 72.9 }
+      ];
+
+      // Exact Fixed-25 Unseen Humanoids from dualzero_scaling_law_results.md (@2250)
+      const FIXED_25 = [
+        { name: 'HighTorque Hi',         h: 100, m: 18.3, seed: [23.5, 55.0, 59.5, 47.5, 45.0, 70.5], lafan: [0.0,  5.0,  0.0,  1.7,  1.7,  3.3], note: 'Hi (+25.5%)' },
+        { name: 'Booster K1',            h:  95, m: 19.7, seed: [36.0, 87.0, 94.0, 94.0, 93.5, 94.0], lafan: [0.0, 25.0, 53.3, 50.0, 45.0, 58.3], note: 'K1 (+13.3% LAFAN)' },
+        { name: 'Unitree R1',            h: 121, m: 28.9, seed: [66.5, 91.0, 95.0, 93.0, 95.0, 95.5], lafan: [0.0, 23.3, 48.3, 31.7, 48.3, 46.7] },
+        { name: 'Noetix N2',             h: 120, m: 33.2, seed: [30.0, 62.5, 92.5, 83.5, 93.0, 94.5], lafan: [1.7,  6.7, 46.7, 33.3, 55.0, 50.0] },
+        { name: 'Unitree G1',            h: 130, m: 33.7, seed: [71.0, 96.0, 96.5, 97.5, 97.5, 97.5], lafan: [0.0, 60.0, 56.7, 63.3, 70.0, 71.7] },
+        { name: 'MagicBot Z1',           h: 140, m: 39.3, seed: [83.5, 82.5, 96.5, 94.5, 95.5, 97.0], lafan: [3.3, 25.0, 60.0, 50.0, 63.3, 65.0] },
+        { name: 'Fourier N1',            h: 130, m: 39.7, seed: [57.5, 79.0, 83.5, 84.0, 89.5, 85.5], lafan: [0.0, 20.0, 35.0, 21.7, 48.3, 31.7] },
+        { name: 'AgiBot X2',             h: 131, m: 41.2, seed: [78.5, 94.5, 95.5, 97.0, 96.5, 97.5], lafan: [0.0, 46.7, 51.7, 50.0, 65.0, 65.0] },
+        { name: 'Noetix E1',             h: 136, m: 41.6, seed: [66.0, 90.5, 95.5, 91.0, 97.0, 95.5], lafan: [0.0, 40.0, 53.3, 45.0, 56.7, 55.0] },
+        { name: 'Booster T2',            h: 145, m: 42.0, seed: [ 0.0, 49.5,  0.5,  9.0, 76.5, 88.5], lafan: [0.0,  0.0,  0.0,  0.0, 10.0, 21.7] },
+        { name: 'Unitree H1',            h: 180, m: 51.4, seed: [ 5.5, 20.0, 55.5, 51.0, 88.5, 82.5], lafan: [0.0,  0.0,  0.0,  1.7, 30.0, 23.3] },
+        { name: 'Kuavo S45',             h: 147, m: 51.7, seed: [10.0, 62.0, 87.5, 77.5, 83.5, 83.0], lafan: [0.0,  1.7, 10.0,  5.0, 10.0, 18.3] },
+        { name: 'IIT ergoCub',           h: 150, m: 52.3, seed: [17.0, 51.0, 63.5, 37.5, 57.5, 56.5], lafan: [0.0,  0.0,  0.0,  0.0,  0.0,  0.0] },
+        { name: 'Fourier GR-1 T1',       h: 165, m: 52.8, seed: [ 4.5, 63.5, 38.5, 50.5, 73.5, 73.0], lafan: [0.0,  0.0,  0.0,  0.0,  8.3,  5.0] },
+        { name: 'Fourier GR-1 T2',       h: 165, m: 54.5, seed: [22.5, 81.5, 88.5, 61.0, 88.0, 91.5], lafan: [0.0, 16.7,  8.3,  3.3, 25.0, 28.3] },
+        { name: 'PND Adam Lite',         h: 167, m: 58.2, seed: [15.0, 73.5, 67.5, 64.5, 91.0, 79.0], lafan: [0.0,  5.0,  5.0,  1.7, 31.7, 13.3] },
+        { name: 'Fourier GR-2',          h: 175, m: 63.0, seed: [14.5, 81.5, 88.5, 88.0, 93.0, 89.0], lafan: [0.0, 13.3, 26.7, 21.7, 30.0, 23.3] },
+        { name: 'MagicBot Gen1',         h: 174, m: 66.5, seed: [33.0, 73.0, 93.5, 85.0, 96.0, 95.0], lafan: [0.0,  3.3, 41.7, 16.7, 50.0, 46.7] },
+        { name: 'Unitree H1-2',          h: 178, m: 67.0, seed: [29.5, 82.5, 94.5, 92.5, 96.0, 95.5], lafan: [0.0, 26.7, 40.0, 43.3, 53.3, 51.7] },
+        { name: 'Kuavo S54',             h: 170, m: 67.4, seed: [17.0, 75.5, 92.5, 87.0, 94.5, 94.5], lafan: [0.0,  5.0, 15.0, 13.3, 25.0, 36.7] },
+        { name: 'DeepRobotics DR02 Std', h: 175, m: 67.6, seed: [ 1.0, 10.0, 29.5, 31.0, 41.0, 40.5], lafan: [0.0,  0.0,  0.0,  0.0,  0.0,  0.0] },
+        { name: 'Fourier GR-3',          h: 165, m: 69.7, seed: [24.5, 88.5, 90.5, 92.0, 94.0, 96.0], lafan: [0.0, 28.3, 33.3, 23.3, 38.3, 41.7] },
+        { name: 'DeepRobotics DR02 Pro', h: 175, m: 78.1, seed: [ 3.0, 17.5,  0.5, 19.0,  6.5,  6.0], lafan: [0.0,  0.0,  0.0,  0.0,  0.0,  0.0] },
+        { name: 'Apptronik Apollo',      h: 173, m: 80.9, seed: [ 0.5, 14.0,  1.5,  2.0,  5.5,  4.5], lafan: [0.0,  0.0,  0.0,  0.0,  0.0,  0.0] },
+        { name: 'IHMC Alex',             h: 175, m: 90.6, seed: [ 0.0,  1.0,  1.0,  5.0,  4.0, 11.5], lafan: [0.0,  0.0,  0.0,  0.0,  0.0,  0.0], note: 'Alex (2.9×)' }
+      ];
+
+      let curIdx = 5;       // Default: N=8 Hull
+      let curMet = 'seed';  // 'seed' | 'lafan'
+      let playTimer = null;
+      let hoverIdx = -1;
+      let screenPts = [];
+
+      function srColor(v, isLafan) {
+        const hi = isLafan ? 45 : 80;
+        const mid = isLafan ? 15 : 40;
+        if (v >= hi) return '#34D399';
+        if (v >= mid) return '#F59E0B';
+        return '#F43F5E';
+      }
+
+      function convexHull(pts) {
+        if (pts.length <= 2) return pts.slice();
+        const s = pts.slice().sort((a, b) => a.x === b.x ? a.y - b.y : a.x - b.x);
+        const cross = (o, a, b) => (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x);
+        const lo = [], hi = [];
+        for (const p of s) { while (lo.length >= 2 && cross(lo[lo.length - 2], lo[lo.length - 1], p) <= 0) lo.pop(); lo.push(p); }
+        for (let i = s.length - 1; i >= 0; i--) { const p = s[i]; while (hi.length >= 2 && cross(hi[hi.length - 2], hi[hi.length - 1], p) <= 0) hi.pop(); hi.push(p); }
+        lo.pop(); hi.pop();
+        return lo.concat(hi);
+      }
+
+      function syncHiDPI(cv) {
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        const rect = cv.getBoundingClientRect();
+        const w = Math.max(300, Math.round(rect.width));
+        const h = Math.max(260, Math.round(rect.height));
+        if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) {
+          cv.width = Math.round(w * dpr);
+          cv.height = Math.round(h * dpr);
+        }
+        const ctx = cv.getContext('2d');
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        return { ctx, w, h };
+      }
+
+      function drawManifold() {
+        const { ctx, w, h } = syncHiDPI(mCv);
+        ctx.clearRect(0, 0, w, h);
+        const pad = { l: 48, r: 20, t: 18, b: 36 };
+        const pw = w - pad.l - pad.r, ph = h - pad.t - pad.b;
+        const mMin = 10, mMax = 96, hMin = 84, hMax = 196;
+        const mx = (m) => pad.l + ((m - mMin) / (mMax - mMin)) * pw;
+        const hy = (hv) => pad.t + ph - ((hv - hMin) / (hMax - hMin)) * ph;
+
+        // Subtle grid
+        ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+        ctx.lineWidth = 1;
+        ctx.font = '500 9.5px "JetBrains Mono", monospace';
+        ctx.fillStyle = '#64748B';
+        ctx.textAlign = 'center';
+        for (let m = 20; m <= 90; m += 10) {
+          const x = mx(m);
+          ctx.beginPath(); ctx.moveTo(x, pad.t); ctx.lineTo(x, pad.t + ph); ctx.stroke();
+          ctx.fillText(String(m), x, pad.t + ph + 15);
+        }
+        ctx.textAlign = 'right';
+        for (let hv = 100; hv <= 180; hv += 20) {
+          const y = hy(hv);
+          ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(pad.l + pw, y); ctx.stroke();
+          ctx.fillText(String(hv), pad.l - 7, y + 3);
+        }
+        ctx.fillStyle = '#8D96A5';
+        ctx.textAlign = 'center';
+        ctx.fillText('ROBOT MASS (kg)', pad.l + pw / 2, h - 4);
+        ctx.save();
+        ctx.translate(12, pad.t + ph / 2);
+        ctx.rotate(-Math.PI / 2);
+        ctx.fillText('HEIGHT (cm)', 0, 0);
+        ctx.restore();
+
+        const reg = REGIMES[curIdx];
+        // Faint reference N=8 outer hull when viewing smaller N
+        if (curIdx < 5) {
+          const h8 = convexHull(REGIMES[5].anchors.map(k => ({ x: mx(TRAIN_ANCHORS[k].m), y: hy(TRAIN_ANCHORS[k].h) })));
+          ctx.strokeStyle = 'rgba(52, 211, 153, 0.16)';
+          ctx.setLineDash([4, 4]);
+          ctx.lineWidth = 1.2;
+          ctx.beginPath();
+          h8.forEach((p, i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
+          ctx.closePath(); ctx.stroke(); ctx.setLineDash([]);
+        }
+
+        // Active regime Convex Hull polygon / segment
+        const aPts = reg.anchors.map(k => ({ ...TRAIN_ANCHORS[k], x: mx(TRAIN_ANCHORS[k].m), y: hy(TRAIN_ANCHORS[k].h) }));
+        const hull = convexHull(aPts);
+        if (hull.length >= 3) {
+          ctx.fillStyle = reg.color === '#34D399' ? 'rgba(52,211,153,0.13)' : (reg.color === '#60A5FA' ? 'rgba(96,165,250,0.13)' : 'rgba(245,158,11,0.13)');
+          ctx.strokeStyle = reg.color;
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          hull.forEach((p, i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
+          ctx.closePath(); ctx.fill(); ctx.stroke();
+        } else if (hull.length === 2) {
+          ctx.strokeStyle = reg.color; ctx.lineWidth = 2.4; ctx.setLineDash([5, 3]);
+          ctx.beginPath(); ctx.moveTo(hull[0].x, hull[0].y); ctx.lineTo(hull[1].x, hull[1].y); ctx.stroke(); ctx.setLineDash([]);
+        }
+
+        // Plot 25 Fixed Unseen Humanoids
+        screenPts = [];
+        const isL = (curMet === 'lafan');
+        FIXED_25.forEach((r, idx) => {
+          const x = mx(r.m), y = hy(r.h);
+          const v = isL ? r.lafan[curIdx] : r.seed[curIdx];
+          const col = srColor(v, isL);
+          screenPts.push({ x, y, r, idx, v });
+          const isHov = (idx === hoverIdx);
+          ctx.beginPath();
+          ctx.arc(x, y, isHov ? 7.2 : 5.2, 0, Math.PI * 2);
+          ctx.fillStyle = col;
+          ctx.fill();
+          ctx.lineWidth = isHov ? 2 : 1.1;
+          ctx.strokeStyle = isHov ? '#FFFFFF' : 'rgba(6,7,9,0.85)';
+          ctx.stroke();
+        });
+
+        // Plot Training Anchors (diamonds / stars)
+        aPts.forEach(p => {
+          ctx.save();
+          ctx.translate(p.x, p.y);
+          ctx.rotate(Math.PI / 4);
+          const sz = p.star ? 6.2 : 4.6;
+          ctx.fillStyle = p.star ? '#34D399' : '#60A5FA';
+          ctx.strokeStyle = '#FFFFFF';
+          ctx.lineWidth = 1.2;
+          ctx.fillRect(-sz, -sz, sz * 2, sz * 2);
+          ctx.strokeRect(-sz, -sz, sz * 2, sz * 2);
+          ctx.restore();
+        });
+
+        // Key annotations when N=8 Hull is active
+        if (curIdx === 5) {
+          ctx.font = '600 9.5px "JetBrains Mono", monospace';
+          ctx.fillStyle = '#34D399';
+          ctx.textAlign = 'left';
+          ctx.fillText('Bumi (17.3kg)', mx(17.3) + 9, hy(94) + 3);
+          ctx.textAlign = 'right';
+          ctx.fillText('OpenLoong (86.1kg)', mx(86.1) - 10, hy(185) + 3);
+        }
+      }
+
+      function drawCurves() {
+        const { ctx, w, h } = syncHiDPI(cCv);
+        ctx.clearRect(0, 0, w, h);
+        const pad = { l: 44, r: 24, t: 20, b: 36 };
+        const pw = w - pad.l - pad.r, ph = h - pad.t - pad.b;
+        const nx = (n) => pad.l + ((n - 1) / 7) * pw;
+        const py = (v) => pad.t + ph - (v / 100) * ph;
+
+        ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+        ctx.lineWidth = 1;
+        ctx.font = '500 9.5px "JetBrains Mono", monospace';
+        ctx.fillStyle = '#64748B';
+        ctx.textAlign = 'right';
+        for (let v = 0; v <= 100; v += 20) {
+          const y = py(v);
+          ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(pad.l + pw, y); ctx.stroke();
+          ctx.fillText(v + '%', pad.l - 6, y + 3);
+        }
+        ctx.textAlign = 'center';
+        [1, 2, 4, 6, 8].forEach(n => {
+          const x = nx(n);
+          ctx.beginPath(); ctx.moveTo(x, pad.t); ctx.lineTo(x, pad.t + ph); ctx.stroke();
+          ctx.fillText('N=' + n, x, pad.t + ph + 16);
+        });
+        ctx.fillStyle = '#8D96A5';
+        ctx.fillText('TRAINING EMBODIMENTS (N)', pad.l + pw / 2, h - 4);
+
+        const isL = (curMet === 'lafan');
+        // Active N vertical glow cursor
+        const reg = REGIMES[curIdx];
+        const cx = nx(reg.n);
+        ctx.strokeStyle = 'rgba(52, 211, 153, 0.35)';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([3, 3]);
+        ctx.beginPath(); ctx.moveTo(cx, pad.t); ctx.lineTo(cx, pad.t + ph); ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Main progression indices: N=1(0), N=2(1), N=4 Strat(3), N=6(4), N=8(5)
+        const mainIdxs = [0, 1, 3, 4, 5];
+        const series = [
+          { col: '#60A5FA', dash: [],     get: (r) => isL ? r.midL  : r.midS },
+          { col: '#F5F7FA', dash: [],     get: (r) => isL ? r.lafan : r.seed, bold: true },
+          { col: '#34D399', dash: [5, 3], get: (r) => isL ? r.litL  : r.litS },
+          { col: '#F43F5E', dash: [2, 3], get: (r) => isL ? r.hvyL  : r.hvyS }
+        ];
+
+        series.forEach(s => {
+          ctx.strokeStyle = s.col;
+          ctx.lineWidth = s.bold ? 2.6 : 1.9;
+          ctx.setLineDash(s.dash);
+          ctx.beginPath();
+          mainIdxs.forEach((ri, i) => {
+            const r = REGIMES[ri];
+            const x = nx(r.n), y = py(s.get(r));
+            if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+          });
+          ctx.stroke();
+          ctx.setLineDash([]);
+          mainIdxs.forEach(ri => {
+            const r = REGIMES[ri];
+            const x = nx(r.n), y = py(s.get(r));
+            const isAct = (ri === curIdx);
+            ctx.beginPath();
+            ctx.arc(x, y, isAct ? 5.5 : 3.4, 0, Math.PI * 2);
+            ctx.fillStyle = s.col; ctx.fill();
+            if (isAct) { ctx.strokeStyle = '#060709'; ctx.lineWidth = 1.6; ctx.stroke(); }
+          });
+        });
+
+        // Plot N=4 Clustered outlier marker (X)
+        const r4c = REGIMES[2];
+        const v4c = isL ? r4c.lafan : r4c.hvyS;
+        const ox = nx(4), oy = py(v4c);
+        ctx.strokeStyle = '#F59E0B'; ctx.lineWidth = 2.4;
+        ctx.beginPath(); ctx.moveTo(ox - 5, oy - 5); ctx.lineTo(ox + 5, oy + 5); ctx.moveTo(ox + 5, oy - 5); ctx.lineTo(ox - 5, oy + 5); ctx.stroke();
+        ctx.font = '600 9px "JetBrains Mono", monospace';
+        ctx.fillStyle = '#F59E0B'; ctx.textAlign = 'left';
+        ctx.fillText(isL ? 'N=4 Clust: 23.4%' : 'Clust Heavy: 1.0%', ox + 8, oy - 4);
+
+        // Annotate Fixed-25 overall values
+        ctx.font = '600 9.5px "JetBrains Mono", monospace';
+        ctx.fillStyle = '#F5F7FA'; ctx.textAlign = 'center';
+        mainIdxs.forEach(ri => {
+          const r = REGIMES[ri];
+          const v = isL ? r.lafan : r.seed;
+          ctx.fillText(v.toFixed(1) + '%', nx(r.n), py(v) - 10);
+        });
+      }
+
+      function renderTable() {
+        tbody.innerHTML = REGIMES.map((r, idx) => `
+          <tr class="${idx === curIdx ? 'scale-row-active' : ''}" style="cursor:pointer;" onclick="setScaleRegime(${idx})">
+            <td><strong style="color:${idx === curIdx ? 'var(--signal)' : 'var(--ink)'};">${r.label}</strong></td>
+            <td class="mono">${r.span}</td>
+            <td class="mono"><strong style="color:var(--signal);">${r.seed.toFixed(1)}%</strong> / <span style="color:var(--blue);">${r.lafan.toFixed(1)}%</span></td>
+            <td class="mono">${r.midS.toFixed(1)}% / ${r.midL.toFixed(1)}%</td>
+            <td class="mono" style="color:${r.litS >= 80 ? 'var(--signal)' : 'var(--ink-sec)'};">${r.litS.toFixed(1)}% / ${r.litL.toFixed(1)}%</td>
+            <td class="mono" style="color:${r.hvyS <= 1.5 ? 'var(--warn)' : 'var(--ink-sec)'};">${r.hvyS.toFixed(1)}% / ${r.hvyL.toFixed(1)}%</td>
+            <td class="mono">${r.mpjpe.toFixed(1)} mm</td>
+          </tr>
+        `).join('');
+      }
+
+      function updateAll() {
+        const reg = REGIMES[curIdx];
+        const tagH = document.getElementById('scaleHullTag');
+        const tagC = document.getElementById('scaleCurveTag');
+        if (tagH) { tagH.textContent = reg.short; tagH.style.color = reg.color; }
+        if (tagC) {
+          const val = curMet === 'lafan' ? reg.lafan : reg.seed;
+          tagC.textContent = `FIXED-25 ${curMet === 'lafan' ? 'LAFAN' : 'SEED'}: ${val.toFixed(1)}%`;
+        }
+        document.querySelectorAll('#scaleRegimeBar .chip').forEach((b, i) => b.classList.toggle('active', i === curIdx));
+        drawManifold();
+        drawCurves();
+        renderTable();
+      }
+
+      window.setScaleRegime = function(idx) {
+        curIdx = idx;
+        updateAll();
+      };
+      window.setScaleMetric = function(m) {
+        curMet = m;
+        document.getElementById('scaleMetSeed').classList.toggle('active', m === 'seed');
+        document.getElementById('scaleMetLafan').classList.toggle('active', m === 'lafan');
+        updateAll();
+      };
+      window.toggleScalePlay = function() {
+        const btn = document.getElementById('scalePlayBtn');
+        if (playTimer) {
+          clearInterval(playTimer); playTimer = null;
+          btn.textContent = '▶ Play N=1→8';
+        } else {
+          curIdx = 0; updateAll();
+          btn.textContent = '⏸ Stop Sweep';
+          playTimer = setInterval(() => {
+            curIdx = (curIdx + 1) % REGIMES.length;
+            updateAll();
+          }, 1350);
+        }
+      };
+
+      // Interactive hover tooltip on Manifold canvas
+      mCv.addEventListener('mousemove', (e) => {
+        const rect = mCv.getBoundingClientRect();
+        const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+        let best = -1, bestD = 16;
+        screenPts.forEach(p => {
+          const d = Math.hypot(p.x - mx, p.y - my);
+          if (d < bestD) { bestD = d; best = p.idx; }
+        });
+        if (best !== hoverIdx) { hoverIdx = best; drawManifold(); }
+        if (best >= 0) {
+          const p = screenPts[best];
+          const r = p.r;
+          const sCur = r.seed[curIdx], lCur = r.lafan[curIdx];
+          const dS = sCur - r.seed[0];
+          tip.innerHTML = `<div style="color:var(--ink); font-weight:700;">${r.name}</div>`
+            + `<div style="color:var(--ink-sec);">${r.h} cm · ${r.m} kg</div>`
+            + `<div style="margin-top:4px;">SEED: <strong style="color:var(--signal);">${sCur.toFixed(1)}%</strong> <span style="color:var(--ink-dim);">(${dS >= 0 ? '+' : ''}${dS.toFixed(1)}% vs N=1)</span></div>`
+            + `<div>LAFAN: <strong style="color:var(--blue);">${lCur.toFixed(1)}%</strong></div>`;
+          const tx = Math.min(rect.width - 210, Math.max(8, p.x + 14));
+          const ty = Math.min(rect.height - 96, Math.max(8, p.y - 44));
+          tip.style.left = tx + 'px'; tip.style.top = ty + 'px'; tip.style.opacity = '1';
+        } else {
+          tip.style.opacity = '0';
+        }
+      });
+      mCv.addEventListener('mouseleave', () => { hoverIdx = -1; tip.style.opacity = '0'; drawManifold(); });
+
+      window.addEventListener('resize', () => { drawManifold(); drawCurves(); });
+      updateAll();
+    })();
   </script>
   <script type="module">
     import { initMuJoCoHero } from './wasm/mujoco_hero_viewer.js';
