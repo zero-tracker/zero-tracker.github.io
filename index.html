@@ -441,8 +441,8 @@
           <div style="margin-top:14px; font-size:14px; font-weight:600; color:var(--ink); letter-spacing:-0.01em; line-height:1.45;">
             Zero-Tracker: Enabling Zero-Shot Cross-Embodiment Whole-Body Tracking via Dual-Space Jacobian Transformers
           </div>
-          <p class="hero-sub" style="margin-top:12px;">
-            Like a master <strong>puppeteer</strong> driving any figure through the same 9 strings, Zero-Tracker enables <strong>zero-shot</strong> expressive whole-body tracking across diverse humanoids via <strong>Dual-Space Jacobian Transformers</strong> and <strong>positive-definite impedance dissipation</strong>—with zero per-robot adapters, zero canonical joint slots, and zero PD gain tuning.
+          <p class="hero-sub" style="margin-top:10px;">
+            One shared <strong>puppeteer</strong> policy over 9 universal anchor strings × <strong>Dual-Space Jacobian Transformers</strong> × <strong>passive impedance</strong> — zero retargeting, zero adapters, zero PD tuning.
           </p>
           <div class="authors-block">
             <strong>Anonymous Authors</strong> &nbsp;·&nbsp; Trained on 6 robots &nbsp;·&nbsp; Evaluated zero-shot across 33 humanoids
@@ -599,7 +599,7 @@
       <div class="sec-head-row">
         <div>
           <h2 class="sec-h2">One Puppeteer Controlling Unseen Humanoids</h2>
-          <p class="sec-desc">A single puppeteer policy drives 16+ unseen humanoids (17 kg – 67 kg, 18 – 31 DoF) through the exact same 9 universal strings directly from raw human motion—with no fine-tuning, no offline motion retargeting, no per-robot adapters, and no manual PD gain tuning.</p>
+          <p class="sec-desc">16+ unseen humanoids (17–67 kg, 18–31 DoF) driven zero-shot directly from raw human motion.</p>
         </div>
         <div class="ctrl-grp">
           <button class="chip active" id="litSlate" onclick="setLighting('slate')">Slate Dark Studio</button>
@@ -653,7 +653,7 @@
           <div>
             <div class="mono" style="font-size:10.5px; color:var(--signal); letter-spacing:0.06em; margin-bottom:6px;">MATCHED-BUDGET BASELINE COMPARISON (33 OPEN-SOURCE HUMANOIDS)</div>
             <h2 class="sec-h2">Zero-Tracker vs. Cross-Embodiment Baselines</h2>
-            <p class="sec-desc">All five methods are trained from scratch on the exact same 6-robot training set with an identical training budget and evaluated zero-shot across 27 unseen open-source humanoids (33 total).</p>
+            <p class="sec-desc">5 methods trained identically on 6 robots, evaluated zero-shot on 27 unseen humanoids.</p>
           </div>
           <div class="ctrl-grp" id="baseScopeBar">
             <button class="chip active" onclick="setBaseScope('zs27', this)">All Unseen (27)</button>
@@ -753,7 +753,7 @@
       <div class="sec-head-row">
         <div>
           <h2 class="sec-h2">Zero-Shot Generalization Across 33 Open-Source Humanoids</h2>
-          <p class="sec-desc">A single policy trained on only 6 robots generalizes zero-shot across 33 community humanoids (17.3 kg – 90.6 kg, 18 – 34 DoF) with no fine-tuning or PD retuning. Toggle <strong>Baselines</strong> to inspect per-robot URMA / MorphMimic / Amorpheus / BodyTransformer bars inline.</p>
+          <p class="sec-desc">Trained on 6 robots → evaluated zero-shot on 33 community humanoids (17.3–90.6 kg, 18–34 DoF).</p>
         </div>
       </div>
 
@@ -761,15 +761,15 @@
         <div class="mg-card">
           <div class="mg-swatch" style="background:var(--signal);"></div>
           <div>
-            <div class="mono" style="font-size:11px; color:var(--ink); font-weight:600;">BALANCE STABILITY (200 RANDOMIZED SEEDS)</div>
-            <div style="font-size:12.5px; color:var(--ink-sec); margin-top:3px;">Percentage of 200 diverse initial poses &amp; perturbations where the robot stays upright and balanced without falling.</div>
+            <div class="mono" style="font-size:11px; color:var(--ink); font-weight:600;">BALANCE STABILITY (SEED-200)</div>
+            <div style="font-size:12px; color:var(--ink-sec); margin-top:2px;">No-fall rate across 200 randomized poses &amp; perturbations.</div>
           </div>
         </div>
         <div class="mg-card">
           <div class="mg-swatch" style="background:#60A5FA;"></div>
           <div>
-            <div class="mono" style="font-size:11px; color:var(--ink); font-weight:600;">DYNAMIC MOTION TRACKING (60 LAFAN1 CLIPS)</div>
-            <div style="font-size:12.5px; color:var(--ink-sec); margin-top:3px;">Percentage of 60 challenging unseen human motions (dances, sprints, turns) tracked full-body from start to finish.</div>
+            <div class="mono" style="font-size:11px; color:var(--ink); font-weight:600;">DYNAMIC MOTION (LAFAN1-60)</div>
+            <div style="font-size:12px; color:var(--ink-sec); margin-top:2px;">Full-clip completion rate across 60 unseen dances, sprints &amp; turns.</div>
           </div>
         </div>
       </div>
@@ -817,36 +817,15 @@
     <!-- 05. UNIFIED ARCHITECTURE & LOCAL PASSIVITY PROOF                      */
     /* ===================================================================== -->
     <div class="sec-bar" id="method">
-      <span>03 // METHOD &amp; SHADOW-PUPPETRY MECHANISM · 3 BARRIERS → ARCHITECTURE → X-RAY</span>
+      <span>03 // METHOD · 3 BARRIERS → ARCHITECTURE → INTERACTIVE X-RAY</span>
       <span>END-TO-END · RETARGET-FREE · STRICTLY PASSIVE</span>
     </div>
-    <!-- Shadow-Puppetry Core Analogy Strip -->
-    <section style="display:grid; grid-template-columns:repeat(3,1fr); border-bottom:1px solid var(--hairline); background:rgba(245,158,11,0.04);">
-      <div style="padding:18px 30px; border-right:1px solid var(--hairline);">
-        <div class="mono" style="font-size:10px; color:#FCD34D; letter-spacing:0.06em;">PUPPETEER PRINCIPLE 01 // THE 9 STRINGS</div>
-        <div style="font-size:13px; color:var(--ink-sec); margin-top:4px; line-height:1.55;">
-          Every humanoid is driven through the same <strong style="color:var(--ink);">9 universal anchor strings</strong>. A skilled puppeteer never over-pulls a shorter puppet off balance—<strong style="color:var(--signal);">KinNet</strong> coordinates the whole body onto its feasible manifold.
-        </div>
-      </div>
-      <div style="padding:18px 30px; border-right:1px solid var(--hairline);">
-        <div class="mono" style="font-size:10px; color:#FCD34D; letter-spacing:0.06em;">PUPPETEER PRINCIPLE 02 // THE RODS &amp; JOINTS</div>
-        <div style="font-size:13px; color:var(--ink-sec); margin-top:4px; line-height:1.55;">
-          Different puppets have different limb lengths and joint counts. <strong style="color:var(--signal);">DynNet</strong> translates string wrenches into exact joint torques online via <strong style="color:var(--ink);">J(q)ᵀ &amp; Gram JᵀJ</strong>.
-        </div>
-      </div>
-      <div style="padding:18px 30px;">
-        <div class="mono" style="font-size:10px; color:#FCD34D; letter-spacing:0.06em;">PUPPETEER PRINCIPLE 03 // THE PUPPETEER'S WRIST</div>
-        <div style="font-size:13px; color:var(--ink-sec); margin-top:4px; line-height:1.55;">
-          A puppeteer uses a gentle touch on a 17 kg marionette and firm damping on a 71 kg figure. <strong style="color:var(--signal);">Adaptive Impedance (K,D ≻ 0)</strong> scales compliance automatically with zero PD tuning.
-        </div>
-      </div>
-    </section>
 
     <section class="barriers-3">
       <!-- BARRIER 01: Interactive Kinematic Over-Pulling vs KinNet Whole-Body Feasibility -->
       <div class="b-cell">
         <div class="b-num">BARRIER 01 // KINEMATIC OVER-PULLING</div>
-        <h3 style="font-size:18px; font-weight:600; letter-spacing:-0.02em; margin-bottom:8px;">Unreachable Targets Break Whole-Body Feasibility &amp; Balance</h3>
+        <h3 style="font-size:17px; font-weight:600; letter-spacing:-0.02em; margin-bottom:8px;">Unreachable Targets Break Balance</h3>
         <div class="b-diagram">
           <canvas id="b1Canvas" width="340" height="152"></canvas>
           <div class="b-lab-ctrl">
@@ -861,16 +840,13 @@
             </div>
           </div>
         </div>
-        <p style="font-size:13.5px; color:var(--ink-sec); line-height:1.68;">
-          Shorter-limbed or ankle-constrained unseen robots (e.g., 19-DoF Unitree H1, 17.3 kg Bumi) cannot realize raw human targets. Drag <strong>PULL &gt; 100%</strong> and toggle <strong>Naive vs KinNet</strong> to see balance preservation.
-        </p>
-        <div class="b-fix">→ RESOLVED BY KINNET: 3-step stateless feasible subspace projection + single-frame analytical tangent velocity.</div>
+        <div class="b-fix">→ KINNET: 3-step feasible subspace projection + analytical tangent velocity.</div>
       </div>
 
       <!-- BARRIER 02: Interactive Link-Length Scaling & Exact J^T / Gram Routing -->
       <div class="b-cell">
         <div class="b-num">BARRIER 02 // TORQUE MISALLOCATION</div>
-        <h3 style="font-size:18px; font-weight:600; letter-spacing:-0.02em; margin-bottom:8px;">Altered Link Geometries Break Learned Joint Couplings</h3>
+        <h3 style="font-size:17px; font-weight:600; letter-spacing:-0.02em; margin-bottom:8px;">Link Scaling Breaks Fixed Couplings</h3>
         <div class="b-diagram">
           <canvas id="b2Canvas" width="340" height="152"></canvas>
           <div class="b-lab-ctrl">
@@ -885,16 +861,13 @@
             </div>
           </div>
         </div>
-        <p style="font-size:13.5px; color:var(--ink-sec); line-height:1.68;">
-          Slide <strong>LIMB</strong> from 0.7× (Bumi) to 1.4× (Gen1): fixed skeletal masks misallocate joint torque when lever arms change, whereas online <strong>J(q)ᵀ &amp; Gram JᵀJ</strong> exact-scales torque distribution instantly.
-        </p>
-        <div class="b-fix">→ RESOLVED BY DYNNET: Bidirectional J(q)ᵀ wrench pullback, Gram JᵀJ joint attention bias, and J(q) motion pushforward.</div>
+        <div class="b-fix">→ DYNNET: Exact J(q)ᵀ wrench pullback, Gram JᵀJ attention bias, and J(q) pushforward.</div>
       </div>
 
       <!-- BARRIER 03: Interactive Mass Shift (17 kg -> 71 kg) & Impulse Response -->
       <div class="b-cell">
         <div class="b-num">BARRIER 03 // IMPEDANCE MISMATCH</div>
-        <h3 style="font-size:18px; font-weight:600; letter-spacing:-0.02em; margin-bottom:8px;">Fixed-Gain PD Triggers Light-Limb Chatter or Heavy Collapse</h3>
+        <h3 style="font-size:17px; font-weight:600; letter-spacing:-0.02em; margin-bottom:8px;">Fixed-PD Rings Light or Sags Heavy</h3>
         <div class="b-diagram">
           <canvas id="b3Canvas" width="340" height="152"></canvas>
           <div class="b-lab-ctrl">
@@ -908,18 +881,13 @@
             <button class="chip" onclick="setB3Mass(71)">71kg</button>
           </div>
         </div>
-        <p style="font-size:13.5px; color:var(--ink-sec); line-height:1.68;">
-          Slide <strong>MASS</strong> from 17 kg to 75 kg: Fixed-PD violently rings on lightweight limbs (17 kg) and sags/collapses under heavy inertia (71 kg), while <strong>ZeroTracker Passive (K,D≻0)</strong> stays critically damped across every mass.
-        </p>
-        <div class="b-fix">→ RESOLVED BY ADAPTIVE IMPEDANCE: Online K_a ≻ 0, D_a ≻ 0, d_q &gt; 0 forming a strictly passive energy-dissipation port.</div>
+        <div class="b-fix">→ PASSIVE PORT: Online K_a ≻ 0, D_a ≻ 0, d_q &gt; 0 critically damped across 17–91 kg.</div>
       </div>
     </section>
 
-
-
     <section class="section-pad">
-      <h2 class="sec-h2">How the Puppeteer Works: Shared Strings × Exact Body Mechanics</h2>
-      <p class="sec-desc">Instead of bolting together ad-hoc modules, ZeroTracker applies the exact same puppeteer factorization—<em>shared neural coordination over 9 universal anchor strings × exact online differential mechanics</em>—from kinematic feasibility to torque actuation.</p>
+      <h2 class="sec-h2">Architecture: Shared 9 Strings × Exact Body Mechanics</h2>
+      <p class="sec-desc">Shared neural coordination over 9 universal anchor strings × exact online differential mechanics.</p>
 
       <div class="arch-frame">
         <img src="./assets/dualzero_architecture.svg" alt="ZeroTracker Architecture Diagram" loading="lazy" decoding="async" />
@@ -945,7 +913,7 @@
         <div>
           <div class="mono" style="font-size:10.5px; color:#FCD34D; letter-spacing:0.06em; margin-bottom:4px;">INTERACTIVE PLAYGROUND // TRY PULLING THE 9 UNIVERSAL STRINGS</div>
           <h3 style="font-size:20px; font-weight:600; letter-spacing:-0.025em;">Hands-On Shadow-Puppetry Mechanism X-Ray</h3>
-          <p class="sec-desc" style="font-size:13px;">Grab any of the 9 glowing handles to pull the puppet strings, slide the vertical curtain to reveal the shadow-puppet mechanism behind the robot, or switch between <strong>ZeroTracker (K,D≻0)</strong> and <strong>Fixed-PD</strong>.</p>
+          <p class="sec-desc" style="font-size:13px;">Drag any of the 9 glowing handles, slide the X-ray curtain, or toggle <strong>Zero-Tracker (K,D≻0)</strong> vs. <strong>Fixed-PD</strong>.</p>
         </div>
       </div>
 
@@ -1048,7 +1016,7 @@
       <div class="sec-head-row">
         <div>
           <h2 class="sec-h2">Ablation Study &amp; Component Analysis</h2>
-          <p class="sec-desc">Evaluated on a 5-robot slice spanning 19.7 kg to 71.3 kg and 19 to 31 DoF. Switch between the 4-Step Incremental Build, Leave-One-Out Retrains, and Zero-Training Diagnostics.</p>
+          <p class="sec-desc">Matched-budget ablations on 5 humanoids (19.7–71.3 kg, 19–31 DoF).</p>
         </div>
         <div class="ctrl-grp">
           <button class="chip active" onclick="showAbTab(0, this)">4-Step Incremental</button>
@@ -1248,8 +1216,8 @@
       <div class="sec-head-row" style="margin-bottom:18px;">
         <div>
           <div class="mono" style="font-size:10.5px; color:var(--signal); letter-spacing:0.06em; margin-bottom:6px;">MORPHOLOGICAL SCALING &amp; CONVEX-HULL GEOMETRY</div>
-          <h2 class="sec-h2">Embodiment Scaling Law: How Many Training Robots Suffice?</h2>
-          <p class="sec-desc">All 6 policies are trained for an identical 2,250 iterations and evaluated strictly zero-shot on the exact same <strong>Fixed-25 Unseen Humanoids</strong>. Click any regime below (or hit <strong>Play N=1→8</strong>) to watch the training convex hull expand across the mass–height manifold and light up all 25 unseen robots.</p>
+          <h2 class="sec-h2">Embodiment Scaling Law (N = 1 → 8)</h2>
+          <p class="sec-desc">6 policies (2,250 iters each) evaluated zero-shot on <strong>Fixed-25 Unseen Humanoids</strong>.</p>
         </div>
       </div>
 
@@ -1309,22 +1277,22 @@
         </div>
       </div>
 
-      <!-- 3 Key Scientific Takeaways -->
+      <!-- 3 Compact Scientific Takeaways -->
       <div class="scale-insights">
         <div class="scale-ins-card">
-          <div class="mono" style="font-size:10px; color:var(--signal); margin-bottom:6px;">FINDING 01 // 2-ROBOT PHASE TRANSITION</div>
-          <div style="font-size:15px; font-weight:600; color:var(--ink); margin-bottom:5px;">N=1 → N=2 Jumps +34.9% Balance</div>
-          <p style="font-size:12.5px; color:var(--ink-sec); line-height:1.6;">Single-robot training (<code class="mono" style="color:var(--ink);">pm01</code>) fails to generalize (28.4% / 0.2%). Adding just one contrasting extreme (<code class="mono" style="color:var(--ink);">t1 + h2</code>) unlocks 63.3% balance and 70× higher LAFAN1 motion.</p>
+          <div class="mono" style="font-size:10px; color:var(--signal); margin-bottom:4px;">01 // 2-ROBOT PHASE TRANSITION</div>
+          <div style="font-size:14px; font-weight:600; color:var(--ink);">N=1 → N=2: +34.9% SEED · 70× LAFAN</div>
+          <div style="font-size:12px; color:var(--ink-sec); margin-top:3px;">Adding 1 contrasting extreme (<code class="mono">t1+h2</code>) jumps 28.4% → 63.3%.</div>
         </div>
         <div class="scale-ins-card">
-          <div class="mono" style="font-size:10px; color:var(--blue); margin-bottom:6px;">FINDING 02 // RAPID N=6 SATURATION</div>
-          <div style="font-size:15px; font-weight:600; color:var(--ink); margin-bottom:5px;">86.8% In-Hull Balance with Only 6 Robots</div>
-          <p style="font-size:12.5px; color:var(--ink-sec); line-height:1.6;">Because exact <code class="mono" style="color:var(--ink);">J(q)ᵀ</code> &amp; <code class="mono" style="color:var(--ink);">Gram JᵀJ</code> absorb kinematic variance analytically, <code class="mono" style="color:var(--ink);">Basis-6</code> reaches 75.7% overall (86.8% Mid-20) and lowest 70.2 mm MPJPE.</p>
+          <div class="mono" style="font-size:10px; color:var(--blue); margin-bottom:4px;">02 // RAPID N=6 SATURATION</div>
+          <div style="font-size:14px; font-weight:600; color:var(--ink);">86.8% In-Hull Balance · 70.2 mm MPJPE</div>
+          <div style="font-size:12px; color:var(--ink-sec); margin-top:3px;"><code class="mono">J(q)ᵀ</code> &amp; <code class="mono">Gram JᵀJ</code> saturate zero-shot transfer with just 6 robots.</div>
         </div>
         <div class="scale-ins-card">
-          <div class="mono" style="font-size:10px; color:var(--amber); margin-bottom:6px;">FINDING 03 // HULL GEOMETRY &gt; COUNT</div>
-          <div style="font-size:15px; font-weight:600; color:var(--ink); margin-bottom:5px;">N=8 Hull Boosts Light-2 by +13.0%</div>
-          <p style="font-size:12.5px; color:var(--ink-sec); line-height:1.6;">Expanding the hull to 17.3–86.1 kg (<code class="mono" style="color:var(--ink);">Bumi + OpenLoong</code>) lifts <code class="mono" style="color:var(--ink);">Light-2</code> from 69.2% → 82.2% (<code class="mono" style="color:var(--ink);">Hi</code> +25.5%, <code class="mono" style="color:var(--ink);">K1</code> +13.3% LAFAN) and boosts 90.6 kg <code class="mono" style="color:var(--ink);">Alex</code> 2.9×.</p>
+          <div class="mono" style="font-size:10px; color:var(--amber); margin-bottom:4px;">03 // HULL GEOMETRY &gt; COUNT</div>
+          <div style="font-size:14px; font-weight:600; color:var(--ink);">N=8 Hull: Light-2 +13.0% · Alex 2.9×</div>
+          <div style="font-size:12px; color:var(--ink-sec); margin-top:3px;">Expanding hull (<code class="mono">Bumi + OpenLoong</code>) lifts <code class="mono">Hi</code> +25.5% &amp; <code class="mono">K1</code> +13.3%.</div>
         </div>
       </div>
 
