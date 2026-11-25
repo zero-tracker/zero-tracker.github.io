@@ -637,8 +637,8 @@
         <div class="sec-head-row" style="margin-bottom:18px;">
           <div>
             <div class="mono" style="font-size:10.5px; color:var(--signal); letter-spacing:0.06em; margin-bottom:6px;">MATCHED-BUDGET BASELINE COMPARISON (33 OPEN-SOURCE HUMANOIDS)</div>
-            <h2 class="sec-h2">ZeroTracker vs. Cross-Embodiment Baselines</h2>
-            <p class="sec-desc">All four methods are trained from scratch on the exact same 6-robot training set with an identical training budget and evaluated zero-shot across 27 unseen open-source humanoids (33 total).</p>
+            <h2 class="sec-h2">Zero-Tracker vs. Cross-Embodiment Baselines</h2>
+            <p class="sec-desc">All five methods are trained from scratch on the exact same 6-robot training set with an identical training budget and evaluated zero-shot across 27 unseen open-source humanoids (33 total).</p>
           </div>
           <div class="ctrl-grp" id="baseScopeBar">
             <button class="chip active" onclick="setBaseScope('zs27', this)">All Unseen (27)</button>
@@ -738,7 +738,7 @@
       <div class="sec-head-row">
         <div>
           <h2 class="sec-h2">Zero-Shot Generalization Across 33 Open-Source Humanoids</h2>
-          <p class="sec-desc">A single policy trained on only 6 robots generalizes zero-shot across 33 community humanoids (17.3 kg – 90.6 kg, 18 – 34 DoF) with no fine-tuning or PD retuning. Toggle <strong>Baselines</strong> to inspect per-robot URMA / Amorpheus / BodyTransformer bars inline.</p>
+          <p class="sec-desc">A single policy trained on only 6 robots generalizes zero-shot across 33 community humanoids (17.3 kg – 90.6 kg, 18 – 34 DoF) with no fine-tuning or PD retuning. Toggle <strong>Baselines</strong> to inspect per-robot URMA / MorphMimic / Amorpheus / BodyTransformer bars inline.</p>
         </div>
       </div>
 
@@ -780,8 +780,9 @@
       <div class="bench-table-wrap">
         <div class="leg-row" id="inlineBaseLegend">
           <span>INLINE BASELINES (ALL 33 HUMANOIDS):</span>
-          <span><i class="leg-dot" style="background:#34D399;"></i><strong style="color:var(--ink);">ZeroTracker (Ours)</strong></span>
+          <span><i class="leg-dot" style="background:#34D399;"></i><strong style="color:var(--ink);">Zero-Tracker (Ours)</strong></span>
           <span><i class="leg-dot" style="background:#94A3B8;"></i>URMA (CoRL'24)</span>
+          <span><i class="leg-dot" style="background:#F472B6;"></i>MorphMimic (2026)</span>
           <span><i class="leg-dot" style="background:#F59E0B;"></i>Amorpheus</span>
           <span><i class="leg-dot" style="background:#64748B;"></i>BodyTransformer</span>
         </div>
@@ -1677,41 +1678,41 @@
       { id:"DeepRobotics DR02 Pro", train:false, height:175, mass:78.1, dof:31, seed:4.5, lafan:0.0, comp:4.74 }
     ];
 
-    // Complete 36-robot matched-budget baseline lookup: [URMA, Amorpheus, BodyTransformer]
+    // Complete 33-robot matched-budget baseline lookup: [URMA, MorphMimic, Amorpheus, BodyTransformer]
     const INLINE_BASE = {
-      "MagicBot Z1":           { seed: [76.5, 61.5, 69.5], lafan: [15.0,  3.3,  5.0] },
-      "RP1":                   { seed: [91.0, 91.5, 92.0], lafan: [50.0, 35.0, 45.0] },
-      "Noetix E1":             { seed: [63.0, 51.0, 19.5], lafan: [ 0.0,  0.0,  0.0] },
-      "Noetix Bumi":           { seed: [91.0, 73.5, 82.0], lafan: [33.3,  0.0, 10.0] },
-      "AgiBot X2":             { seed: [81.0, 20.0, 39.5], lafan: [20.0,  0.0,  0.0] },
-      "EngineAI PM01":         { seed: [94.0, 94.5, 90.0], lafan: [55.0, 43.3, 33.3] },
-      "AgiBot A3":             { seed: [92.5, 81.5, 86.0], lafan: [51.7, 21.7, 20.0] },
-      "Unitree H2":            { seed: [90.0,  0.0,  0.0], lafan: [46.7,  0.0,  0.0] },
-      "Unitree G1":            { seed: [91.0, 85.5, 87.0], lafan: [51.7, 23.3, 35.0] },
-      "Unitree H1-2":          { seed: [73.0, 55.5, 20.5], lafan: [ 5.0,  3.3,  0.0] },
-      "MagicBot Gen1":         { seed: [75.0, 25.0, 25.5], lafan: [18.3,  0.0,  0.0] },
-      "Unitree R1":            { seed: [72.5, 77.5, 71.0], lafan: [10.0,  8.3,  6.7] },
-      "Atom01":                { seed: [87.5, 82.0, 80.5], lafan: [41.7, 18.3, 15.0] },
-      "Fourier GR-3":          { seed: [90.0,  0.0,  3.5], lafan: [38.3,  0.0,  0.0] },
-      "Noetix N2":             { seed: [37.0, 12.5,  0.0], lafan: [ 0.0,  0.0,  0.0] },
-      "PND Adam Lite":         { seed: [81.5,  2.5, 11.5], lafan: [20.0,  0.0,  0.0] },
-      "Fourier N1":            { seed: [58.5, 50.5, 45.0], lafan: [ 0.0,  0.0,  0.0] },
-      "Fourier GR-2":          { seed: [85.0, 24.0, 24.0], lafan: [36.7,  0.0,  0.0] },
-      "Booster K1":            { seed: [87.5, 70.5, 70.5], lafan: [28.3, 11.7,  8.3] },
-      "Kuavo S54":             { seed: [41.0, 41.0, 31.5], lafan: [ 0.0,  0.0,  0.0] },
-      "Booster T1":            { seed: [87.5, 80.5, 80.5], lafan: [35.0, 10.0, 10.0] },
-      "Fourier GR-1 T2":       { seed: [78.0,  4.0, 10.5], lafan: [ 6.7,  0.0,  0.0] },
-      "Unitree H1":            { seed: [14.0, 11.0,  1.0], lafan: [ 0.0,  0.0,  0.0] },
-      "Kuavo S45":             { seed: [49.5, 25.0,  6.0], lafan: [ 1.7,  0.0,  0.0] },
-      "Fourier GR-1 T1":       { seed: [61.0,  2.0,  9.0], lafan: [ 1.7,  0.0,  0.0] },
-      "OpenLoong":             { seed: [ 0.0,  7.5,  0.5], lafan: [ 0.0,  0.0,  0.0] },
-      "Booster T2":            { seed: [ 0.0,  0.0,  0.0], lafan: [ 0.0,  0.0,  0.0] },
-      "IIT ergoCub":           { seed: [ 0.0, 16.5,  8.5], lafan: [ 0.0,  0.0,  0.0] },
-      "HighTorque Hi":         { seed: [39.5, 40.0, 48.0], lafan: [ 1.7,  0.0,  0.0] },
-      "DeepRobotics DR02 Std": { seed: [ 2.5,  2.0,  2.5], lafan: [ 0.0,  0.0,  0.0] },
-      "IHMC Alex":             { seed: [ 1.5,  0.5,  0.0], lafan: [ 0.0,  0.0,  0.0] },
-      "Apptronik Apollo":      { seed: [ 0.0,  0.0,  2.5], lafan: [ 0.0,  0.0,  0.0] },
-      "DeepRobotics DR02 Pro": { seed: [ 0.0,  0.0,  0.0], lafan: [ 0.0,  0.0,  0.0] }
+      "MagicBot Z1":           { seed: [76.5, 13.5, 61.5, 69.5], lafan: [15.0,  0.0,  3.3,  5.0] },
+      "RP1":                   { seed: [91.0, 87.5, 91.5, 92.0], lafan: [50.0, 38.3, 35.0, 45.0] },
+      "Noetix E1":             { seed: [63.0, 13.5, 51.0, 19.5], lafan: [ 0.0,  0.0,  0.0,  0.0] },
+      "Noetix Bumi":           { seed: [91.0,  1.5, 73.5, 82.0], lafan: [33.3,  0.0,  0.0, 10.0] },
+      "AgiBot X2":             { seed: [81.0, 29.5, 20.0, 39.5], lafan: [20.0,  0.0,  0.0,  0.0] },
+      "EngineAI PM01":         { seed: [94.0, 97.0, 94.5, 90.0], lafan: [55.0, 65.0, 43.3, 33.3] },
+      "AgiBot A3":             { seed: [92.5, 96.0, 81.5, 86.0], lafan: [51.7, 63.3, 21.7, 20.0] },
+      "Unitree H2":            { seed: [90.0, 95.0,  0.0,  0.0], lafan: [46.7, 58.3,  0.0,  0.0] },
+      "Unitree G1":            { seed: [91.0, 46.5, 85.5, 87.0], lafan: [51.7,  1.7, 23.3, 35.0] },
+      "Unitree H1-2":          { seed: [73.0, 61.5, 55.5, 20.5], lafan: [ 5.0, 10.0,  3.3,  0.0] },
+      "MagicBot Gen1":         { seed: [75.0, 89.5, 25.0, 25.5], lafan: [18.3, 21.7,  0.0,  0.0] },
+      "Unitree R1":            { seed: [72.5, 32.5, 77.5, 71.0], lafan: [10.0,  0.0,  8.3,  6.7] },
+      "Atom01":                { seed: [87.5, 94.5, 82.0, 80.5], lafan: [41.7, 60.0, 18.3, 15.0] },
+      "Fourier GR-3":          { seed: [90.0, 95.5,  0.0,  3.5], lafan: [38.3, 53.3,  0.0,  0.0] },
+      "Noetix N2":             { seed: [37.0, 15.5, 12.5,  0.0], lafan: [ 0.0,  0.0,  0.0,  0.0] },
+      "PND Adam Lite":         { seed: [81.5, 85.0,  2.5, 11.5], lafan: [20.0, 16.7,  0.0,  0.0] },
+      "Fourier N1":            { seed: [58.5, 21.5, 50.5, 45.0], lafan: [ 0.0,  0.0,  0.0,  0.0] },
+      "Fourier GR-2":          { seed: [85.0, 92.0, 24.0, 24.0], lafan: [36.7, 33.3,  0.0,  0.0] },
+      "Booster K1":            { seed: [87.5, 90.5, 70.5, 70.5], lafan: [28.3, 25.0, 11.7,  8.3] },
+      "Kuavo S54":             { seed: [41.0,  0.0, 41.0, 31.5], lafan: [ 0.0,  0.0,  0.0,  0.0] },
+      "Booster T1":            { seed: [87.5, 94.0, 80.5, 80.5], lafan: [35.0, 41.7, 10.0, 10.0] },
+      "Fourier GR-1 T2":       { seed: [78.0, 83.5,  4.0, 10.5], lafan: [ 6.7, 33.3,  0.0,  0.0] },
+      "Unitree H1":            { seed: [14.0, 40.0, 11.0,  1.0], lafan: [ 0.0,  1.7,  0.0,  0.0] },
+      "Kuavo S45":             { seed: [49.5,  0.0, 25.0,  6.0], lafan: [ 1.7,  0.0,  0.0,  0.0] },
+      "Fourier GR-1 T1":       { seed: [61.0, 70.5,  2.0,  9.0], lafan: [ 1.7, 11.7,  0.0,  0.0] },
+      "OpenLoong":             { seed: [ 0.0,  0.0,  7.5,  0.5], lafan: [ 0.0,  0.0,  0.0,  0.0] },
+      "Booster T2":            { seed: [ 0.0, 14.0,  0.0,  0.0], lafan: [ 0.0,  0.0,  0.0,  0.0] },
+      "IIT ergoCub":           { seed: [ 0.0,  0.0, 16.5,  8.5], lafan: [ 0.0,  0.0,  0.0,  0.0] },
+      "HighTorque Hi":         { seed: [39.5, 75.5, 40.0, 48.0], lafan: [ 1.7,  3.3,  0.0,  0.0] },
+      "DeepRobotics DR02 Std": { seed: [ 2.5,  0.0,  2.0,  2.5], lafan: [ 0.0,  0.0,  0.0,  0.0] },
+      "IHMC Alex":             { seed: [ 1.5,  0.0,  0.5,  0.0], lafan: [ 0.0,  0.0,  0.0,  0.0] },
+      "Apptronik Apollo":      { seed: [ 0.0,  0.0,  0.0,  2.5], lafan: [ 0.0,  0.0,  0.0,  0.0] },
+      "DeepRobotics DR02 Pro": { seed: [ 0.0,  0.0,  0.0,  0.0], lafan: [ 0.0,  0.0,  0.0,  0.0] }
     };
 
     let bFilter = 'all', bSort = 'seed', bDir = -1, showInlineBase = true, benchExpanded = false;
@@ -1753,8 +1754,8 @@
             : `SHOW ALL ${totalCount} ROBOTS (+${totalCount - 5} MORE) ↓`;
         }
       }
-      const bCols = ['#94A3B8', '#F59E0B', '#64748B'];
-      const bNames = ['URMA', 'Amor', 'BodyT'];
+      const bCols = ['#94A3B8', '#F472B6', '#F59E0B', '#64748B'];
+      const bNames = ['URMA', 'MorphMimic', 'Amor', 'BodyT'];
       const makeSubBars = (arr) => arr.map((v, i) => `
         <div class="pr-bar-line" title="${bNames[i]}: ${v.toFixed(1)}%">
           <div class="pr-track" style="height:3.5px;"><div style="height:100%; width:${Math.max(v, 0.8)}%; background:${bCols[i]}; opacity:0.82;"></div></div>
@@ -2097,47 +2098,51 @@
     animateBarriers();
 
     // =========================================================================
-    // 6. HEAD-TO-HEAD BASELINE COMPARISON (URMA · AMORPHEUS · BODY TRANSFORMER)
+    // 6. HEAD-TO-HEAD BASELINE COMPARISON (URMA · MORPHMIMIC · AMORPHEUS · BODYT)
     // =========================================================================
     const BASE_AGG = {
       zs27: {
         title: 'AGGREGATE · 27 UNSEEN HUMANOIDS (ZERO-SHOT)',
-        note: 'Across all 27 unseen humanoids, ZeroTracker achieves <strong style="color:var(--signal);">+26.2% to +50.7%</strong> higher balance stability, <strong style="color:#60A5FA;">2.8× – 16.0×</strong> higher dynamic motion tracking, and <strong style="color:var(--ink);">2.0× – 2.4×</strong> lower tracking error (63.8 mm vs. 126.1–152.2 mm).',
+        note: 'Across all 27 unseen humanoids, Zero-Tracker achieves <strong style="color:var(--signal);">+26.2% to +50.7%</strong> higher balance stability (<strong style="color:var(--signal);">+40.2%</strong> over MorphMimic), <strong style="color:#60A5FA;">2.8× – 16.0×</strong> higher dynamic motion tracking, and <strong style="color:var(--ink);">1.7× – 2.2×</strong> lower MPJPE (73.0 mm vs. 127.5–162.6 mm).',
         rows: [
-          { name: 'ZeroTracker (Ours)', ours: true,  seed: 76.2, lafan: 30.4, mpjpe: 63.8 },
-          { name: "URMA (CoRL'24)",  ours: false, seed: 50.0, lafan: 10.7, mpjpe: 152.2 },
-          { name: 'Amorpheus',       ours: false, seed: 28.1, lafan: 1.9,  mpjpe: 128.3 },
-          { name: 'BodyTransformer', ours: false, seed: 25.5, lafan: 2.4,  mpjpe: 126.1 }
+          { name: 'Zero-Tracker (Ours)', ours: true,  seed: 76.2, lafan: 30.4, mpjpe: 73.0 },
+          { name: "URMA (CoRL'24)",      ours: false, seed: 50.0, lafan: 10.7, mpjpe: 155.8 },
+          { name: 'MorphMimic (2026)',   ours: false, seed: 36.0, lafan: 7.8,  mpjpe: 162.6 },
+          { name: 'Amorpheus',           ours: false, seed: 28.1, lafan: 1.9,  mpjpe: 130.8 },
+          { name: 'BodyTransformer',     ours: false, seed: 25.5, lafan: 2.4,  mpjpe: 127.5 }
         ]
       },
       clean33: {
         title: 'AGGREGATE · ALL 33 OPEN-SOURCE HUMANOIDS',
-        note: 'Across all 33 open-source humanoids, ZeroTracker leads every baseline by <strong style="color:var(--signal);">+22.4% to +45.8%</strong> on balance stability and <strong style="color:#60A5FA;">2.1× – 6.6×</strong> on LAFAN1 tracking.',
+        note: 'Across all 33 open-source humanoids, Zero-Tracker leads every baseline by <strong style="color:var(--signal);">+22.4% to +45.8%</strong> on balance stability and <strong style="color:#60A5FA;">2.1× – 6.6×</strong> on LAFAN1 tracking.',
         rows: [
-          { name: 'ZeroTracker (Ours)', ours: true,  seed: 79.7, lafan: 35.7, mpjpe: 60.4 },
-          { name: "URMA (CoRL'24)",  ours: false, seed: 57.3, lafan: 17.2, mpjpe: 146.9 },
-          { name: 'Amorpheus',       ours: false, seed: 36.0, lafan: 5.4,  mpjpe: 121.0 },
-          { name: 'BodyTransformer', ours: false, seed: 33.9, lafan: 5.7,  mpjpe: 118.3 }
+          { name: 'Zero-Tracker (Ours)', ours: true,  seed: 79.7, lafan: 35.7, mpjpe: 68.7 },
+          { name: "URMA (CoRL'24)",      ours: false, seed: 57.3, lafan: 17.2, mpjpe: 150.8 },
+          { name: 'MorphMimic (2026)',   ours: false, seed: 46.5, lafan: 16.3, mpjpe: 150.7 },
+          { name: 'Amorpheus',           ours: false, seed: 36.0, lafan: 5.4,  mpjpe: 124.8 },
+          { name: 'BodyTransformer',     ours: false, seed: 33.9, lafan: 5.7,  mpjpe: 121.1 }
         ]
       },
       zs11: {
         title: 'AGGREGATE · 11 STANDARD UNSEEN COMMERCIAL HUMANOIDS',
-        note: 'On the 11 standard unseen commercial humanoids, ZeroTracker achieves <strong style="color:var(--signal);">83.0%</strong> balance stability, <strong style="color:#60A5FA;">36.8%</strong> LAFAN1 tracking, and <strong style="color:var(--ink);">53.5 mm</strong> MPJPE.',
+        note: 'On the 11 standard unseen commercial humanoids, Zero-Tracker achieves <strong style="color:var(--signal);">83.0%</strong> balance stability, <strong style="color:#60A5FA;">36.8%</strong> LAFAN1 tracking (7.4× higher than MorphMimic), and <strong style="color:var(--ink);">67.8 mm</strong> MPJPE.',
         rows: [
-          { name: 'ZeroTracker (Ours)', ours: true,  seed: 83.0, lafan: 36.8, mpjpe: 53.5 },
-          { name: "URMA (CoRL'24)",  ours: false, seed: 55.3, lafan: 12.4, mpjpe: 159.7 },
-          { name: 'Amorpheus',       ours: false, seed: 36.9, lafan: 4.2,  mpjpe: 122.6 },
-          { name: 'BodyTransformer', ours: false, seed: 32.3, lafan: 4.5,  mpjpe: 123.5 }
+          { name: 'Zero-Tracker (Ours)', ours: true,  seed: 83.0, lafan: 36.8, mpjpe: 67.8 },
+          { name: "URMA (CoRL'24)",      ours: false, seed: 55.3, lafan: 12.4, mpjpe: 167.2 },
+          { name: 'MorphMimic (2026)',   ours: false, seed: 37.0, lafan: 5.0,  mpjpe: 166.6 },
+          { name: 'Amorpheus',           ours: false, seed: 36.9, lafan: 4.2,  mpjpe: 127.0 },
+          { name: 'BodyTransformer',     ours: false, seed: 32.3, lafan: 4.5,  mpjpe: 125.3 }
         ]
       },
       seen6: {
         title: 'AGGREGATE · 6 TRAINING HUMANOIDS',
-        note: 'On the 6 training humanoids, ZeroTracker achieves <strong style="color:var(--signal);">95.2%</strong> balance stability, <strong style="color:#60A5FA;">59.2%</strong> LAFAN1 tracking, and <strong style="color:var(--ink);">45.1 mm</strong> MPJPE (2.7× lower than URMA).',
+        note: 'On the 6 training humanoids, Zero-Tracker achieves <strong style="color:var(--signal);">95.2%</strong> balance stability, <strong style="color:#60A5FA;">59.2%</strong> LAFAN1 tracking, and <strong style="color:var(--ink);">49.2 mm</strong> MPJPE (2.0× lower than MorphMimic).',
         rows: [
-          { name: 'ZeroTracker (Ours)', ours: true,  seed: 95.2, lafan: 59.2, mpjpe: 45.1 },
-          { name: "URMA (CoRL'24)",  ours: false, seed: 90.4, lafan: 46.7, mpjpe: 123.1 },
-          { name: 'Amorpheus',       ours: false, seed: 71.7, lafan: 21.4, mpjpe: 88.1 },
-          { name: 'BodyTransformer', ours: false, seed: 71.5, lafan: 20.6, mpjpe: 83.4 }
+          { name: 'Zero-Tracker (Ours)', ours: true,  seed: 95.2, lafan: 59.2, mpjpe: 49.2 },
+          { name: 'MorphMimic (2026)',   ours: false, seed: 94.0, lafan: 54.4, mpjpe: 97.4 },
+          { name: "URMA (CoRL'24)",      ours: false, seed: 90.4, lafan: 46.7, mpjpe: 128.3 },
+          { name: 'Amorpheus',           ours: false, seed: 71.7, lafan: 21.4, mpjpe: 97.9 },
+          { name: 'BodyTransformer',     ours: false, seed: 71.5, lafan: 20.6, mpjpe: 92.4 }
         ]
       }
     };
